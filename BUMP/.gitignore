@@ -1,0 +1,25 @@
+# Project place file
+/BUMP.rbxlx
+/sourcemap.json
+/processed-src
+
+# Operating-system and Python runtime artifacts
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Roblox Studio lock files
+/*.rbxlx.lock
+/*.rbxl.lock
+sourcemap.json
+
+# Agent scratch space.
+/.codex_tmp/
+/tmp/
+
+# Build stamp written by `python3 tools/release.py stamp` on publish day: the commit
+# hashes of the checkout it sits in, so it cannot be part of a commit. Without it the
+# game reports a "dev" build. See docs/release/PUBLISH.md.
+/src/Shared/BuildInfoGenerated.lua
+*.blend1
+/build

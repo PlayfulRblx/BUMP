@@ -1,0 +1,9 @@
+{
+  "name": "Resources",
+  "globIgnorePaths": [
+    "**/*.spec.lua"
+  ],
+  "tree": {
+    "$path": "processed-resources"
+  }
+}

@@ -1,0 +1,13 @@
+{
+    "languageMode": "strict",
+    "aliases": {
+        "Shared": "../BUMP/src/Shared",
+        "Lib": "../../../ArcEngine/lib/",
+        "Engine": "../../../ArcEngine/src/",
+        "Server": "../BUMP/src/Server",
+        "Client": "../BUMP/src/Client",
+        "EngineServer": "../../../ArcEngine/src/Server",
+        "EngineShared": "../../../ArcEngine/src/Shared",
+        "EngineClient": "../../../ArcEngine/src/Client"
+    }
+}

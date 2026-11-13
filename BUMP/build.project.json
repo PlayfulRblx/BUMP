@@ -1,0 +1,287 @@
+{
+  "name": "BUMP",
+  "globIgnorePaths": [
+    "**/.package-lock.json",
+    "**/.gitkeep",
+    "**/*.spec.lua",
+    "assets/**/*.json"
+  ],
+  "servePort": 1355,
+  "tree": {
+    "$className": "DataModel",
+    "Workspace": {
+      "$className": "Workspace",
+      "$properties": {
+        "SignalBehavior": "Deferred"
+      },
+      "Junk": {
+        "$className": "Folder"
+      },
+      "Ignore": {
+        "$className": "Folder",
+        "Pets": {
+          "$className": "Model"
+        }
+      },
+      "_particleDatabase": {
+        "$className": "Folder"
+      },
+      "_modelDatabase": {
+        "$className": "Folder",
+        "none": {
+          "$className": "Folder",
+          "_none": {
+            "$className": "Model",
+            "Part": {
+              "$className": "Part",
+              "$properties": {
+                "Anchored": true,
+                "Size": [
+                  4,
+                  1,
+                  2
+                ]
+              }
+            }
+          }
+        }
+      },
+      "_serverModelDatabase": {
+        "$className": "Folder"
+      },
+      "_serverTemplates": {
+        "$className": "Folder",
+        "$ignoreUnknownInstances": true
+      },
+      "Effects": {
+        "$className": "Folder",
+        "PartCache": {
+          "$className": "Folder"
+        }
+      },
+      "INDEV": {
+        "$className": "Folder",
+        "Particles": {
+          "$className": "Folder"
+        }
+      },
+      "Live": {
+        "$className": "Folder",
+        "Players": {
+          "$className": "Folder"
+        },
+        "NPCs": {
+          "$className": "Folder"
+        },
+        "FakeCharacters": {
+          "$className": "Folder"
+        },
+        "Items": {
+          "$className": "Folder"
+        }
+      },
+      "Terrain": {
+        "$className": "Terrain",
+        "$properties": {
+          "Decoration": true,
+          "GrassLength": 0.3
+        }
+      },
+      "Baseplate": {
+        "$className": "Part",
+        "$properties": {
+          "Anchored": true,
+          "Locked": true,
+          "Size": [
+            512,
+            16,
+            512
+          ],
+          "CFrame": [
+            0,
+            -8,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      },
+      "SpawnLocation": {
+        "$className": "SpawnLocation",
+        "$properties": {
+          "Anchored": true,
+          "Size": [
+            12,
+            1,
+            12
+          ],
+          "CFrame": [
+            0,
+            0.5,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1,
+            0,
+            0,
+            0,
+            1
+          ]
+        }
+      }
+    },
+    "ReplicatedStorage": {
+      "BACKEND": {
+        "$className": "Folder",
+        "Shared": {
+          "$className": "Folder",
+          "@Engine": {
+            "$path": "../../../ArcEngine/shared-runtime-processed.project.json"
+          },
+          "@Game": {
+            "$path": "processed-src/Shared"
+          },
+          "Resources": {
+            "$path": "../BUMPResources/client-resources.project.json",
+            "$ignoreUnknownInstances": false
+          }
+        },
+        "Lib": {
+          "$path": "../../../ArcEngine/lib-runtime.project.json"
+        },
+        "Assets": {
+          "$className": "Folder",
+          "@Game": {
+            "$path": "assets"
+          },
+          "@Engine": {
+            "$path": "../../../ArcEngine/assets-runtime.project.json"
+          }
+        }
+      },
+      "ImportPaths": {
+        "$path": "processed-src/ImportPaths.lua"
+      },
+      "ReloadDirectories": {
+        "$path": "../../../ArcEngine/processed-src/ReloadDirectories.lua"
+      },
+      "DEBUG_MODE": {
+        "$className": "BoolValue"
+      }
+    },
+    "ReplicatedFirst": {
+      "BACKEND": {
+        "$className": "Folder",
+        "Shared": {
+          "$className": "Folder",
+          "@Engine": {
+            "$className": "Folder",
+            "firstLib": {
+              "$path": "../../../ArcEngine/processed-src/ReplicatedFirst/firstLib"
+            },
+            "UIFusion": {
+              "$className": "Folder",
+              "EngineUtils": {
+                "$className": "Folder",
+                "Fade": {
+                  "$path": "../../../ArcEngine/processed-src/Client/UIFusion/EngineUtils/Fade.lua"
+                }
+              }
+            }
+          },
+          "@EngineAssets": {
+            "$path": "../../../ArcEngine/replicatedFirstLibrary"
+          }
+        }
+      }
+    },
+    "ServerScriptService": {
+      "BACKEND": {
+        "$className": "Folder",
+        "Server": {
+          "$className": "Folder",
+          "@Engine": {
+            "$path": "../../../ArcEngine/server-runtime-processed.project.json"
+          },
+          "@Game": {
+            "$path": "processed-src/Server"
+          }
+        }
+      }
+    },
+    "ServerStorage": {
+      "$className": "ServerStorage",
+      "ServerAssets": {
+        "$className": "Folder",
+        "Sounds": {
+          "$className": "Folder"
+        }
+      },
+      "integration": {
+        "$path": "../../../ArcEngine/integration-runtime.project.json"
+      }
+    },
+    "StarterPlayer": {
+      "$className": "StarterPlayer",
+      "$properties": {
+        "EnableMouseLockOption": false
+      },
+      "$ignoreUnknownInstances": true,
+      "StarterPlayerScripts": {
+        "BACKEND": {
+          "$className": "Folder",
+          "@Game": {
+            "$path": "processed-src/Client"
+          },
+          "@Engine": {
+            "$path": "../../../ArcEngine/client-runtime-processed.project.json"
+          }
+        }
+      }
+    },
+    "Players": {
+      "$className": "Players",
+      "$properties": {
+        "CharacterAutoLoads": false,
+        "UseStrafingAnimations": true
+      }
+    },
+    "SoundService": {
+      "$properties": {
+        "RespectFilteringEnabled": true
+      }
+    },
+    "Lighting": {
+      "$className": "Lighting",
+      "$properties": {
+        "Technology": "Future",
+        "GlobalShadows": true,
+        "Brightness": 2.6,
+        "ClockTime": 14.5,
+        "GeographicLatitude": 35,
+        "EnvironmentDiffuseScale": 1,
+        "EnvironmentSpecularScale": 1,
+        "ShadowSoftness": 0.25,
+        "Ambient": [
+          0.32,
+          0.32,
+          0.38
+        ],
+        "OutdoorAmbient": [
+          0.58,
+          0.58,
+          0.66
+        ]
+      }
+    }
+  }
+}

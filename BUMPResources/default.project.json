@@ -1,0 +1,30 @@
+{
+  "name": "BUMPResources",
+  "globIgnorePaths": [
+    "**/*.spec.lua"
+  ],
+  "servePort": 13418,
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Resources": {
+        "$path": "ResourceManager"
+      },
+      "BACKEND": {
+        "$className": "Folder",
+        "Lib": {
+          "$path": "../../../ArcEngine/lib"
+        },
+        "Shared": {
+          "$className": "Folder",
+          "@Game": {
+            "$path": "../BUMP/src/Shared"
+          },
+          "@Engine": {
+            "$path": "../../../ArcEngine/src/Shared"
+          }
+        }
+      }
+    }
+  }
+}

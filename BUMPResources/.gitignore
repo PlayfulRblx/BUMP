@@ -1,0 +1,16 @@
+# Project place file
+/BUMPResources.rbxlx
+/processed-resources
+sourcemap.json
+
+# Operating-system and Python runtime artifacts
+.DS_Store
+__pycache__/
+*.py[cod]
+
+# Agent scratch space.
+/.codex_tmp/
+
+# Roblox Studio lock files
+/*.rbxlx.lock
+/*.rbxl.lock

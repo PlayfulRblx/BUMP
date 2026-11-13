@@ -1,0 +1,17 @@
+{
+    "languageMode": "strict",
+    "aliases": {
+        "Client": "src/Client",
+        "Server": "src/Server",
+        "GameServer": "src/Server",
+        "Shared": "src/Shared",
+        "Utils": "src/Shared/Utils",
+        "Packages": "lib/",
+        "Lib": "../../../ArcEngine/lib/",
+        "Querys": "src/Shared/Querys/",
+        "Databases": "src/Shared/Databases/",
+        "UIFusion": "src/Client/UIFusion/",
+        "Engine": "../../../ArcEngine/src/",
+        "Resources": "../BUMPResources/"
+    }
+}

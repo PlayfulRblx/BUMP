@@ -1,0 +1,34 @@
+{
+    "psi-header.lang-config": [
+        {
+            "language": "lua",
+            "begin": "--[[",
+            "prefix": "--",
+            "end": "--]]\nlocal EngineDirectories = require(\"@Engine/Shared/EngineDirectories\")\nlocal print, warn = EngineDirectories.Print, EngineDirectories.Warn\nlocal Maid = EngineDirectories.Maid\nlocal Promise = EngineDirectories.Promise\nlocal EngineEnums = EngineDirectories.Enums\nlocal Network = EngineDirectories.Network\n\nlocal EngineUtils = require(\"@Engine/Shared/Utils\")\n\nlocal EngineHandlers = require(\"@Engine/Shared/Handlers\")\n\nlocal Utils = require(\"@Shared/Utils\")\nlocal Enums = Utils.Enums\n\nlocal this = {}\n\n\nreturn this\n\n",
+            "blankLinesAfter": 0
+        },
+        {
+            "language": "luau",
+            "begin": "--[[",
+            "prefix": "--",
+            "end": "--]]\nlocal EngineDirectories = require(\"@Engine/Shared/EngineDirectories\")\nlocal print, warn = EngineDirectories.Print, EngineDirectories.Warn\nlocal Maid = EngineDirectories.Maid\nlocal Promise = EngineDirectories.Promise\nlocal EngineEnums = EngineDirectories.Enums\nlocal Network = EngineDirectories.Network\n\nlocal EngineUtils = require(\"@Engine/Shared/Utils\")\n\nlocal EngineHandlers = require(\"@Engine/Shared/Handlers\")\n\nlocal Utils = require(\"@Shared/Utils\")\nlocal Enums = Utils.Enums\n\nlocal this = {}\n\n\nreturn this\n\n",
+            "blankLinesAfter": 0
+        }
+    ],
+    "files.exclude": {
+        "processed-src": true
+    },
+    "[lua]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua",
+        "editor.formatOnSave": true,
+        "editor.inlayHints.enabled": "on",
+        "editor.hover.sticky": true
+    },
+    "[luau]": {
+        "editor.defaultFormatter": "JohnnyMorganz.stylua",
+        "editor.formatOnSave": true,
+        "editor.inlayHints.enabled": "on",
+        "editor.hover.sticky": true
+    },
+    "stylua.targetReleaseVersion": "latest"
+}

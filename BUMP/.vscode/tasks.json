@@ -1,0 +1,173 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Dev: Start All (Game + ArcEngine + Resources)",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "tools/dev_tasks.py",
+        "dev-all"
+      ],
+      "windows": {
+        "command": "python",
+        "args": [
+          "tools\\dev_tasks.py",
+          "dev-all"
+        ]
+      },
+      "options": {
+        "cwd": "${workspaceFolder:BUMP}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "dev-all",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Stop All",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "tools/dev_tasks.py",
+        "stop-dev"
+      ],
+      "windows": {
+        "command": "python",
+        "args": [
+          "tools\\dev_tasks.py",
+          "stop-dev"
+        ]
+      },
+      "options": {
+        "cwd": "${workspaceFolder:BUMP}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "dev-stop",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: Prepare (no watchers)",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "tools/dev_tasks.py",
+        "prepare"
+      ],
+      "windows": {
+        "command": "python",
+        "args": [
+          "tools\\dev_tasks.py",
+          "prepare"
+        ]
+      },
+      "options": {
+        "cwd": "${workspaceFolder:BUMP}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "dev-prepare",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: BUMP Standalone (advanced)",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "tools/dev_tasks.py",
+        "dev-repo",
+        "game"
+      ],
+      "windows": {
+        "command": "python",
+        "args": [
+          "tools\\dev_tasks.py",
+          "dev-repo",
+          "game"
+        ]
+      },
+      "options": {
+        "cwd": "${workspaceFolder:BUMP}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "dev-game",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: ArcEngine Standalone (advanced)",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "tools/dev_tasks.py",
+        "dev-repo",
+        "arc-engine"
+      ],
+      "windows": {
+        "command": "python",
+        "args": [
+          "tools\\dev_tasks.py",
+          "dev-repo",
+          "arc-engine"
+        ]
+      },
+      "options": {
+        "cwd": "${workspaceFolder:BUMP}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "dev-arc",
+        "clear": true
+      },
+      "problemMatcher": []
+    },
+    {
+      "label": "Dev: BUMPResources Standalone (advanced)",
+      "type": "process",
+      "command": "python3",
+      "args": [
+        "tools/dev_tasks.py",
+        "dev-repo",
+        "resources"
+      ],
+      "windows": {
+        "command": "python",
+        "args": [
+          "tools\\dev_tasks.py",
+          "dev-repo",
+          "resources"
+        ]
+      },
+      "options": {
+        "cwd": "${workspaceFolder:BUMP}"
+      },
+      "presentation": {
+        "reveal": "always",
+        "focus": false,
+        "panel": "dedicated",
+        "group": "dev-res",
+        "clear": true
+      },
+      "problemMatcher": []
+    }
+  ]
+}

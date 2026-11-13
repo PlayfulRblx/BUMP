@@ -1,0 +1,48 @@
+{
+	"folders": [
+	 {
+	  "name": "BUMP",
+	  "path": "."
+	 },
+	 {
+	  "name": "BUMPResources",
+	  "path": "../BUMPResources"
+	 },
+	 {
+	  "name": "ArcEngine",
+	  "path": "../../../ArcEngine"
+	 }
+	],
+	"settings": {
+	 "psi-header.lang-config": [
+	  {
+	   "language": "lua",
+	   "begin": "--[[",
+	   "prefix": "--",
+	   "end": "--]]\nlocal EngineDirectories = require(\"@Engine/Shared/EngineDirectories\")\nlocal print, warn = EngineDirectories.Print, EngineDirectories.Warn\nlocal Maid = EngineDirectories.Maid\nlocal Promise = EngineDirectories.Promise\nlocal EngineEnums = EngineDirectories.Enums\nlocal Network = EngineDirectories.Network\n\nlocal EngineUtils = require(\"@Engine/Shared/Utils\")\n\nlocal EngineHandlers = require(\"@Engine/Shared/Handlers\")\n\nlocal Utils = require(\"@Shared/Utils\")\nlocal Enums = Utils.Enums\n\nlocal this = {}\n\n\nreturn this\n\n",
+	   "blankLinesAfter": 0
+	  },
+	  {
+	   "language": "luau",
+	   "begin": "--[[",
+	   "prefix": "--",
+	   "end": "--]]\nlocal EngineDirectories = require(\"@Engine/Shared/EngineDirectories\")\nlocal print, warn = EngineDirectories.Print, EngineDirectories.Warn\nlocal Maid = EngineDirectories.Maid\nlocal Promise = EngineDirectories.Promise\nlocal EngineEnums = EngineDirectories.Enums\nlocal Network = EngineDirectories.Network\n\nlocal EngineUtils = require(\"@Engine/Shared/Utils\")\n\nlocal EngineHandlers = require(\"@Engine/Shared/Handlers\")\n\nlocal Utils = require(\"@Shared/Utils\")\nlocal Enums = Utils.Enums\n\nlocal this = {}\n\n\nreturn this\n\n",
+	   "blankLinesAfter": 0
+	  }
+	 ],
+	 "stylua.targetReleaseVersion": "latest",
+	 "VsCodeTaskButtons.tasks": [
+	  {
+	   "label": "$(play) Dev: Start All",
+	   "task": "Dev: Start All (Game + ArcEngine + Resources)",
+	   "tooltip": "Start all dev watchers"
+	  },
+	  {
+	   "label": "$(stop) Dev: Stop All",
+	   "task": "Dev: Stop All",
+	   "tooltip": "Stop all dev watchers",
+	   "color": "warning"
+	  }
+	 ]
+	}
+}
