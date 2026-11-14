@@ -7,7 +7,7 @@
 	seconds. A Roblox character is about 5 studs tall, so a 5 stud jump clears your own head.
 	Every number is a first guess until it has been played.
 
-	The flip clips (Backflip, TripleFlip in animation/scripts/clips_bump.py) are stretched to fit
+	The timed clips (JumpSingle, Backflip in animation/scripts/clips_bump.py) are stretched to fit
 	the real time in the air (Platformer.AirTime), so these heights can change freely.
 ]]
 
@@ -27,7 +27,7 @@ return {
 
 	Air = {
 		TurnRate = 4.6, -- radians a second your body and your arc turn toward where you push (about 265 degrees; was 3.4)
-		FlipTurn = 0.6, -- share of that during a triple or a backflip
+		FlipTurn = 0.6, -- share of that during a backflip
 		LongJumpTurn = 0.45,
 		DiveTurn = 0.35,
 		SteerShare = 0.6, -- share of Accel on an ordinary jump: turning does most of the steering
@@ -43,15 +43,7 @@ return {
 	},
 
 	Jump = {
-		Single = 7,
-		Double = 10, -- jump again just after landing a single
-		Triple = 15, -- and again after the double, while running fast enough
-		ChainWindow = 0.25, -- how soon after landing the next jump must come
-		ChainSpeed = 8, -- the double needs this much speed
-		TripleSpeed = 14, -- the triple needs this much
-		TripleBoost = 1.08, -- the triple carries your speed forward, a little more
-		TripleFloat = 0.7, -- near the top of the triple, gravity is only this share: a hang at the peak (was 0.45)
-		TripleFloatBand = 16, -- "near the top": rising or falling slower than this (was 22)
+		Single = 7, -- every ground jump; the second jump is the air jump (AirJump)
 		Buffer = 0.14, -- a jump pressed this long before landing still counts
 		Coyote = 0.1, -- and one pressed this long after running off an edge
 	},

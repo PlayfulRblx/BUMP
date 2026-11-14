@@ -257,12 +257,12 @@ end
 
 -- ═══ moves ════════════════════════════════════════════════════════════════════════
 
-local LAUNCHES = { Jump = 0.8, Double = 1, Triple = 1.3, AirJump = 1.1, Backflip = 1.2, LongJump = 1.1, PoundJump = 1.4, Rollout = 0.7 }
+local LAUNCHES = { Jump = 0.8, AirJump = 1.1, Backflip = 1.2, LongJump = 1.1, PoundJump = 1.4, Rollout = 0.7 }
 local AIRBORNE = {
-	Jump = true, Double = true, Triple = true, AirJump = true, Backflip = true, LongJump = true, PoundJump = true, Rollout = true,
+	Jump = true, AirJump = true, Backflip = true, LongJump = true, PoundJump = true, Rollout = true,
 	Fall = true, WallJump = true, Dive = true, Knocked = true,
 }
-local BIG_LANDINGS = { Triple = true, Backflip = true, LongJump = true, PoundJump = true, WallJump = true }
+local BIG_LANDINGS = { Backflip = true, LongJump = true, PoundJump = true, WallJump = true }
 
 local chargeFx = {} -- the ball dash's charge-up and launch (defined further down)
 
@@ -286,7 +286,7 @@ function BumpFx.OnMove(model: Model, move: string, previous: string)
 	if LAUNCHES[move] then
 		local size = LAUNCHES[move]
 		local recipes = { puff(math.round(3 * size), { 3, 5 * size }, size) }
-		if move == "Triple" or move == "PoundJump" or move == "Backflip" or move == "AirJump" then
+		if move == "PoundJump" or move == "Backflip" or move == "AirJump" then
 			table.insert(recipes, ring(2.6 * size))
 			table.insert(recipes, sparkles(6, 0.35))
 		end

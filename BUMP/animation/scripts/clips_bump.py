@@ -96,15 +96,6 @@ def crouch_walk():
 #   about the hips, which swung the whole body round in a wide circle.
 # Made for the right side; mirror() makes the left, and a chain alternates.
 
-def flip_pivot(angle, base_y=0.0, centre=0.5):
-    """Hips offset that makes a Root pitch of `angle` degrees turn the body about a point
-    `centre` studs above the hips rather than about the hips. Half a stud is where a tucked body's
-    mass is (knees folded to the chest); measured in Blender, a full stud swung the tuck round."""
-    import math
-    t = math.radians(angle)
-    return (0, base_y + centre * (1 - math.cos(t)), -centre * math.sin(t))
-
-
 # Coming down: arms out and a little forward for balance, legs together and soft.
 FALL_OPEN = {
     "Root": (-2, 0, 0), "Waist": (0, 0, 0), "Neck": (6, 0, 0), "Move": (0, 0, 0),
@@ -149,62 +140,6 @@ def jump_single():
     right = Clip("JumpSingleR", keys, {"Land": 14, "End": 14})
     left = Clip("JumpSingleL", [(f, mirror(pose)) for f, pose in keys], {"Land": 14, "End": 14})
     return [right, left]
-
-
-def jump_double():
-    """Bigger: both arms sweeping up (the right higher), chest open, both knees lifting; then
-    the same balanced fall."""
-    sweep = {
-        "Root": (2, 0, 0), "Waist": (10, -4, 0), "Neck": (16, 2, 0), "Move": (0, 0.25, 0),
-        "RS": (160, 0, 22), "RE": (14, 0, 0), "RW": (0, 0, 0),
-        "LS": (128, 0, -34), "LE": (22, 0, 0), "LW": (0, 0, 0),
-        "RH": (24, 0, 6), "RK": (-44, 0, 0), "RA": (26, 0, 0),
-        "LH": (72, 0, -6), "LK": (-92, 0, 0), "LA": (18, 0, 0),
-    }
-    top = lerp_pose(sweep, FALL_OPEN, 0.45)
-    keys = [
-        (0, merge(TAKEOFF, {"Move": (0, -0.45, 0), "RS": (40, 0, 18), "LS": (40, 0, -18)})),
-        (3, sweep),
-        (7, merge(sweep, {"RS": (150, 0, 28), "LS": (118, 0, -40), "LH": (64, 0, -6), "LK": (-84, 0, 0), "Move": (0, 0.15, 0)})),
-        (10, top),
-        (13, FALL_OPEN),
-        (17, LAND_READY),
-    ]
-    right = Clip("JumpDoubleR", keys, {"Land": 17, "End": 17})
-    left = Clip("JumpDoubleL", [(f, mirror(pose)) for f, pose in keys], {"Land": 17, "End": 17})
-    return [right, left]
-
-
-def triple_flip():
-    """A stretch up, one front somersault in a tuck turning about the middle of the body, then
-    open into the balanced fall to the ground. Single somersault, no star (the user's call)."""
-    stretch = {
-        "Root": (-2, 0, 0), "Waist": (4, 0, 0), "Neck": (14, 0, 0), "Move": (0, 0.3, 0),
-        "RS": (168, 0, 10), "RE": (8, 0, 0), "RW": (0, 0, 0), "LS": (168, 0, -10), "LE": (8, 0, 0), "LW": (0, 0, 0),
-        "RH": (4, 0, 2), "RK": (-8, 0, 0), "RA": (30, 0, 0), "LH": (4, 0, -2), "LK": (-8, 0, 0), "LA": (30, 0, 0),
-    }
-    tuck = merge(TUCK, {"Neck": (24, 0, 0)})  # chin in
-    keys = [
-        (0, merge(TAKEOFF, {"Move": (0, -0.5, 0), "RS": (60, 0, 16), "LS": (60, 0, -16)})),
-        (3, stretch),
-        (4, merge(lerp_pose(stretch, tuck, 0.5), {"Root": (-20, 0, 0), "Move": flip_pivot(-20, 0.3)})),
-    ]
-    # the turn, eased in and out, a key every frame (each well under 90 degrees)
-    import math
-    first, last = 5, 13
-    for frame in range(first, last + 1):
-        t = (frame - first + 1) / (last - first + 1)
-        eased = t * t * (3 - 2 * t)
-        angle = -20 - 340 * eased
-        keys.append((frame, merge(tuck, {"Root": (angle, 0, 0), "Move": flip_pivot(angle, 0.3)})))
-    keys += [
-        (15, merge(lerp_pose(tuck, FALL_OPEN, 0.6), {"Root": (-362, 0, 0), "Move": (0, 0.15, 0)})),
-        (18, merge(FALL_OPEN, {"Root": (-362, 0, 0)})),
-        (24, merge(FALL_OPEN, {"Root": (-362, 0, 0), "RS": (50, 0, 50), "LS": (50, 0, -50)})),
-        (28, merge(LAND_READY, {"Root": (-364, 0, 0)})),
-    ]
-    _ = math
-    return Clip("TripleFlip", keys, {"Land": 28, "End": 28})
 
 
 # The air jump, second take (2026-11-13: "a running on air kind of float, the player runs on air as
@@ -546,7 +481,7 @@ def ball_wobble():
 
 def all_clips():
     return [
-        crouch(), crouch_walk(), *jump_single(), *jump_double(), triple_flip(), air_run(), land_big(), backflip(), long_jump(), dive(),
+        crouch(), crouch_walk(), *jump_single(), air_run(), land_big(), backflip(), long_jump(), dive(),
         belly_slide(), pound_spin(), pound_fall(), pound_land(), pound_jump(), wall_cling(), wall_slide(), wall_leap(), shove(), stagger(), hero_pose(),
         tumble(), flail(), ball_balance(), ball_charge(), ball_dash(), ball_skrrt(), ball_wobble(),
     ]

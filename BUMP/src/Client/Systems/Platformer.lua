@@ -26,7 +26,7 @@
 	Keys: Space jump, C crouch, left click or E attack. Gamepad: A jump, L2/R2
 	crouch, X/B attack. Touch: Roblox's jump button, plus Crouch and Attack in the engine's ring.
 	Each button shows the engine's input chip, labelled with what it would do right now
-	("Backflip", "Triple Jump", "Ground Pound", "Wall Jump"...).
+	("Float Jump", "Backflip", "Ground Pound", "Wall Jump"...).
 
 	Every move you are in is sent to the server (Remotes "Move"), which puts it on your character
 	so every client can animate you (Animator). Hits are found here and sent as "Bump"; the server
@@ -80,7 +80,6 @@ local LEAVE_GROUND_GRACE = 0.12 -- after a jump, ignore the floor this long
 local body = nil -- { character, root, humanoid, mover, aligner }
 local move = "Run"
 local moveAt = 0
-local lastJumpKind = nil -- "Single" | "Double" | "Triple": the jump you last landed from
 local landedAt = -math.huge
 local leftGroundAt = -math.huge
 local walkedOffAt = -math.huge -- when you last ran off an edge without jumping (coyote time)
@@ -229,19 +228,12 @@ local function grounded(): boolean
 end
 
 -- How long a jump launched upward at `up` stays in the air before it is back at the height it
--- left, under this module's gravity rules (heavier falling, and the triple's hang at the top).
-local function predictAirTime(up: number, triple: boolean, fromHeight: number?): number
+-- left, under this module's gravity rules (rising and falling heavier than the world's).
+local function predictAirTime(up: number, fromHeight: number?): number
 	local g = gravity()
 	local y, v, t, dt = fromHeight or 0, up, 0, 1 / 240
 	repeat
-		local share = 1
-		if triple and math.abs(v) < Jump.TripleFloatBand then
-			share = Jump.TripleFloat
-		elseif v < 0 then
-			share = Air.FallGravity
-		else
-			share = Air.RiseGravity
-		end
+		local share = v < 0 and Air.FallGravity or Air.RiseGravity
 		v -= g * share * dt
 		y += v * dt
 		t += dt
@@ -258,7 +250,7 @@ local function launch(planar: Vector3, up: number)
 	jumpPressedAt = -math.huge
 	airPeakY = root.Position.Y
 	launchY = root.Position.Y
-	airTime = predictAirTime(up, false)
+	airTime = predictAirTime(up)
 	body.humanoid:ChangeState(Enum.HumanoidStateType.Freefall)
 end
 
@@ -392,44 +384,30 @@ end
 
 -- ═══ moves ════════════════════════════════════════════════════════════════════════
 
+-- Every ground jump is a single: the second jump is in the air (startAirJump).
 local function startJump(planar: Vector3)
-	-- every ground jump is a single now: the second jump is in the air (startAirJump)
-	local kind = "Single"
-	local speed = planar.Magnitude
-	lastJumpKind = kind
-	if kind == "Triple" then
-		planar = unit(planar, facing) * speed * Jump.TripleBoost
-		facing = unit(planar, facing)
-	end
-	launch(planar, riseFor(Jump[kind]))
-	if kind == "Triple" then
-		airTime = predictAirTime(riseFor(Jump.Triple), true)
-	end
-	setMove(kind == "Single" and "Jump" or kind)
+	launch(planar, riseFor(Jump.Single))
+	setMove("Jump")
 end
 
 local function startGroundJump()
 	local planar = flat(body.root.AssemblyLinearVelocity)
 	if move == "PoundLand" then
-		lastJumpKind = nil
 		launch(Vector3.zero, riseFor(Pound.JumpHeight))
 		setMove("PoundJump")
 		return
 	end
 	if move == "Slide" then
-		lastJumpKind = nil
 		launch(planar * 0.5, riseFor(Dive.RolloutHeight))
 		setMove("Rollout")
 		return
 	end
 	if move == "Roll" or move == "LandRoll" then
-		lastJumpKind = nil
 		launch(facing * math.max(planar.Magnitude, Roll.Speed), riseFor(Roll.JumpHeight))
 		setMove("LongJump")
 		return
 	end
 	if crouchHeld then
-		lastJumpKind = nil
 		if planar.Magnitude >= LongJump.MinSpeed then
 			launch(facing * math.max(planar.Magnitude, LongJump.Speed), riseFor(LongJump.Height))
 			setMove("LongJump")
@@ -450,7 +428,6 @@ local AIR_JUMP_FROM = { Jump = true, Fall = true, Backflip = true, LongJump = tr
 -- legs keep you rising slowly (the vertical part is in the step, under move == "AirJump").
 local function startAirJump()
 	airJumped = true
-	lastJumpKind = nil
 	local planar = flat(body.root.AssemblyLinearVelocity)
 	launch(planar, math.max(body.root.AssemblyLinearVelocity.Y, 0) * 0.3 + AirJump.Kick)
 	airPeakY = body.root.Position.Y
@@ -463,7 +440,6 @@ local function tryJump(): boolean
 	end
 	if move == "WallCling" or move == "WallSlide" then
 		if wallNormal then
-			lastJumpKind = nil
 			airDived = false
 			facing = wallNormal
 			wallBlock = { normal = wallNormal, untilTime = now() + Wall.RegrabDelay }
@@ -503,12 +479,12 @@ local function onJumpReleased()
 	if not alive() then
 		return
 	end
-	if move == "Jump" or move == "Double" then
+	if move == "Jump" then
 		local up = body.root.AssemblyLinearVelocity.Y
 		if up > 0 then
 			setVertical(up * Air.CutJump)
 			-- a shorter hop: re-time the jump clip to the flight that's left
-			airTime = (now() - leftGroundAt) + predictAirTime(up * Air.CutJump, false, body.root.Position.Y - launchY)
+			airTime = (now() - leftGroundAt) + predictAirTime(up * Air.CutJump, body.root.Position.Y - launchY)
 		end
 	end
 end
@@ -589,7 +565,6 @@ local function onKnocked(velocity: Vector3, kind: string?)
 		body.mover.Enabled = true
 		body.aligner.Enabled = true
 	end
-	lastJumpKind = nil
 	airDived = false
 	local planar = flat(velocity)
 	if planar.Magnitude > 1 then
@@ -605,7 +580,6 @@ end
 
 -- Rolled square into a wall.
 local function startBonk(normal: Vector3)
-	lastJumpKind = nil
 	facing = -normal
 	launch(normal * Bonk.BounceSpeed, Bonk.BounceUp)
 	setMove("Bonk")
@@ -630,7 +604,6 @@ local function onLanded()
 		return
 	end
 	if drop >= BigFall.Height and move ~= "Knocked" then
-		lastJumpKind = nil
 		local planar = flat(body.root.AssemblyLinearVelocity)
 		facing = unit(planar, facing)
 		setMove("LandRoll")
@@ -639,7 +612,6 @@ local function onLanded()
 	if move == "Jump" then
 		setMove(crouchHeld and "Crouch" or "Run")
 	else
-		lastJumpKind = nil
 		setMove(crouchHeld and "Crouch" or "Run")
 	end
 end
@@ -750,7 +722,6 @@ local function step(dt: number)
 	-- landing and leaving the ground
 	if GROUND_MOVES[move] then
 		if not onGround and move ~= "PoundLand" and move ~= "Bonk" then
-			lastJumpKind = nil
 			walkedOffAt = now()
 			airPeakY = root.Position.Y
 			setMove("Fall")
@@ -901,10 +872,9 @@ local function step(dt: number)
 				setVertical(-down)
 			end
 		end
-	else -- Jump, AirJump, WallJump, PoundJump, Rollout, Fall (and Double, Triple: no longer used)
-		local triple = move == "Triple"
-		planar = airTurn(planar, input, dt, triple and Air.FlipTurn or 1)
-		planar = steer(planar, input, dt, triple and 0.4 or (move == "AirJump" and AirJump.Steer or Air.SteerShare))
+	else -- Jump, AirJump, WallJump, PoundJump, Rollout, Fall
+		planar = airTurn(planar, input, dt, 1)
+		planar = steer(planar, input, dt, move == "AirJump" and AirJump.Steer or Air.SteerShare)
 		if move == "AirJump" then
 			-- running on air, you face where you run: the way you push, or the way you're going
 			turnFacing(input.Magnitude > 0.1 and input or planar, AirJump.FaceRate, dt)
@@ -915,7 +885,7 @@ local function step(dt: number)
 	end
 
 	-- catch a wall: in the air, moving or pushing into it, not rising fast
-	if not onGround and (move == "Jump" or move == "AirJump" or move == "Double" or move == "Triple" or move == "Fall"
+	if not onGround and (move == "Jump" or move == "AirJump" or move == "Fall"
 		or move == "WallJump" or move == "LongJump" or move == "Rollout" or move == "PoundJump") then
 		local into = input.Magnitude > 0.1 and input or planar
 		local normal = wallIn(into, Wall.Reach)
@@ -924,7 +894,6 @@ local function step(dt: number)
 			local moving = planar:Dot(-normal) > Wall.GrabSpeed
 			if pushing or moving then
 				wallNormal = normal
-				lastJumpKind = nil
 				airDived = false
 				airJumped = false
 				facing = -normal
@@ -954,8 +923,6 @@ local function step(dt: number)
 				up += gravity() * dt
 				up += (target - up) * (1 - math.exp(-AirJump.Pull * dt))
 			end
-		elseif move == "Triple" and math.abs(up) < Jump.TripleFloatBand then
-			up += gravity() * (1 - Jump.TripleFloat) * dt -- the hang at the top of the triple
 		elseif up < 0 then
 			up -= gravity() * (Air.FallGravity - 1) * dt
 		else
@@ -1088,7 +1055,7 @@ end
 local HINTS = { BumpJump = jumpHint, BumpCrouch = crouchHint, BumpAttack = attackHint }
 
 -- A plain jump needs no chip (the user, 2026-11-13: "we don't need a hint for Jump"); the jump
--- chip shows only when Space does something special: Double Jump, Backflip, Wall Jump...
+-- chip shows only when Space does something special: Float Jump, Backflip, Wall Jump...
 local function shown(id: string, label: string): boolean
 	return not (id == "BumpJump" and label == "Jump")
 end
@@ -1209,7 +1176,6 @@ function Platformer.Hop(planar: Vector3, height: number)
 	if not alive() then
 		return
 	end
-	lastJumpKind = nil
 	launch(flat(planar), riseFor(height))
 	setMove("Jump")
 end

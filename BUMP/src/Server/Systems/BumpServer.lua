@@ -26,7 +26,7 @@ local Bump = Tuning.Of("Bump")
 local BumpServer = {}
 
 local MOVES = {
-	Run = true, Crouch = true, Fall = true, Jump = true, Double = true, Triple = true, AirJump = true,
+	Run = true, Crouch = true, Fall = true, Jump = true, AirJump = true,
 	Backflip = true, LongJump = true, PoundSpin = true, PoundFall = true, PoundLand = true,
 	PoundJump = true, Dive = true, Slide = true, Rollout = true, Roll = true, Bump = true,
 	WallCling = true, WallSlide = true, WallJump = true, Knocked = true, Shoved = true, LandRoll = true, Bonk = true,

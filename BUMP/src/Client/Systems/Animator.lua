@@ -60,11 +60,11 @@ local AUTHORED_HIP_HEIGHT = 2.2
 local MOVING_SPEED = 4
 local STOP_SPEED = 1.5
 -- Landings from these play the full Land crouch, even moving.
-local BIG_LANDINGS = { Triple = "LandBig", Backflip = "LandBig", PoundJump = "Land", WallJump = "Land" }
+local BIG_LANDINGS = { Backflip = "LandBig", PoundJump = "Land", WallJump = "Land" }
 -- Clips stretched so their Land marker meets the real landing (your own body; others play as
--- authored). The jumps are one continuous clip each, take-off to landing, sides alternating.
-local TIMED_FLIPS = { Triple = "TripleFlip", Backflip = "Backflip", Jump = "JumpSingle", Double = "JumpDouble" }
-local SIDED = { Jump = true, Double = true }
+-- authored). The jump is one continuous clip, take-off to landing, sides alternating.
+local TIMED_FLIPS = { Backflip = "Backflip", Jump = "JumpSingle" }
+local SIDED = { Jump = true }
 local AIR_SPEED = 7
 -- Run plays as authored at this speed, faster above it. Was 14.4 (where The Scramble's feet
 -- stayed planted), which played it twice as fast at BUMP's top speed of 28; the user found the
@@ -295,9 +295,9 @@ end
 local FLAIR_SKIP = {
 	Ride = true, RideCharge = true, RideDash = true, RideSkrrt = true, RideWobble = true, Roll = true, LandRoll = true,
 	Bonk = true, Knocked = true, Shoved = true, PoundSpin = true, PoundFall = true, PoundLand = true, Backflip = true,
-	Triple = true, WallCling = true, WallSlide = true, Slide = true, Rollout = true, Hero = true,
+	WallCling = true, WallSlide = true, Slide = true, Rollout = true, Hero = true,
 }
-local AIRBORNE_FLAIR = { AirJump = true, Jump = true, Double = true, Fall = true, LongJump = true, Dive = true, WallJump = true, PoundJump = true }
+local AIRBORNE_FLAIR = { AirJump = true, Jump = true, Fall = true, LongJump = true, Dive = true, WallJump = true, PoundJump = true }
 local LEAN_STIFF, LEAN_DAMP = 150, 15 -- springs a little under critical: a small overshoot
 local DIP_STIFF, DIP_DAMP = 320, 20
 
@@ -427,7 +427,7 @@ local function noteMove(entry, move: string)
 			entry.Flair.DipV -= math.clamp(fell * 0.09, 1.5, 9)
 		end
 		entry.LastMove = move
-		if move == "Jump" or move == "Double" then
+		if move == "Jump" then
 			entry.Side = entry.Side == "R" and "L" or "R"
 		end
 		if previous ~= "" then
