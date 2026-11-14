@@ -218,7 +218,7 @@ round ends, Gotham, colours read from the engine's chip tokens), pruned of its c
 | `UIFusion/Kit/Motion.lua`, `Source.lua` | Springs and reduced motion; the contract the HUD reads a round through, with every key and event listed |
 | `UIFusion/Kit/FakeRound.lua` | A source that plays scenarios (Lobby, Intro, Playing, Knocked out, Results, Standings) for the board |
 | `UIFusion/Components/Kit/Ui*.lua` | Shared: `UiText`, `UiPlate`, `UiLine`, `UiMeter`, `UiPips`, `UiPortrait` (seat-coloured ring, Out), `UiTag`, `UiCounter`, `UiKeyHint`, `UiBanner`, `UiButton`, `UiReveal`, `UiScrim`. BUMP's: `UiCoin`, `UiGold`, `UiPlace`, `UiSeat`, `UiCard` |
-| `UIFusion/Components/Hud/*.lua` | `BumpHud` (root, by phase and device), `HudStatus`, `HudNote` (a game's line under the status bar), `HudGold`, `HudPlayers`, `HudCharge`, `HudLobby`, `HudIntro`, `HudResults`, `HudStandings`, `HudKnockout` |
+| `UIFusion/Components/Hud/*.lua` | `BumpHud` (root, by phase and device), `HudStatus` (a small pill: clock and how many left), `HudRound` (the game's name and session pips, top left), `HudNote` (a game's line under the pill, bare text), `HudGold`, `HudPlayers`, `HudCharge`, `HudLobby`, `HudIntro`, `HudResults`, `HudStandings`, `HudKnockout` |
 | `UIFusion/Stories/*.story.lua`, `Storybooks/BUMP.storybook.lua` | The UI Labs board: Tokens, Kit, HUD (Scenario, Play, Device, Backdrop controls) |
 
 - **Rules** (as The Scramble's): a screen never holds a Color3, font or size, a missing look is a
@@ -590,6 +590,21 @@ checks are switched off.
 - Seen in Studio: a whole game, knocked out, back to the plaza, onto the next arena, and no anti-cheat
   warning (before this, one fired the moment the intro placed me). **Not seen:** a live server
   itself, where the snapping happens; ball dashes there.
+
+## The status bar, minimal (2026-11-14)
+
+The user, from a live server: "we should also change that UI in the middle. The X Has the Bomb,
+the game name, the counter of how many players are left etc. And what does it mean by "Game 2 of
+6"?" (a session plays six minigames back to back, then the standings). Of three mockups (broadcast
+bars like the knockout card, a strip of faces, minimal) they picked **minimal**:
+- `HudStatus`: a small dark pill top centre, the clock (games with one) and "5 left in".
+- `HudRound`: top left under Roblox's buttons, the game's name in its colour and a pip per game of
+  the session lit up to this one, "2 of 6 games" beside them (on a phone, under the pill, no name).
+- `HudNote`: the game's line ("Zippy has the bomb!", "SURGE!") as bare text in the game's colour
+  with the kit's outline, popping when it changes. The feed moved down to clear `HudRound`.
+Seen in Play: Bomber ("8 left in", the bomb line in orange) and BUMP ("1:54 | 5 left in", cyan
+"BUMP" and two pips). **Not seen:** a phone; the bigger "2 of 6 games" label (it was Micro and ran
+together).
 
 ## Round intro (2026-11-13)
 

@@ -69,6 +69,7 @@ return function(scope, props)
 						inner:HudLevel({ Source = source, Layout = layout }),
 						inner:HudStatus({ Source = source, Layout = layout, Shown = phaseIs("Play") }),
 						inner:HudNote({ Source = source, Layout = layout, Shown = phaseIs("Play") }),
+						inner:HudRound({ Source = source, Layout = layout, Shown = phaseIs("Play") }),
 						inner:HudPlayers({ Source = source, Layout = layout, Shown = phaseIs("Play", "Results", "Intro") }),
 						inner:HudCharge({ Source = source, Layout = layout }),
 						inner:HudLobby({ Source = source, Layout = layout, Shown = phaseIs("Lobby") }),

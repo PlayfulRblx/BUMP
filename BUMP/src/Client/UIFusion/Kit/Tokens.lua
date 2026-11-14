@@ -302,10 +302,12 @@ Tokens.Layout = table.freeze({
 		Base = 720,
 		Margin = 24,
 		Shadows = true,
-		-- Top centre: which game, the time left and who is still in.
-		Status = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 16), Width = 420 }),
-		-- Under it: a game's line of the moment (who has the bomb).
-		Note = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 88), Width = 320 }),
+		-- Top centre: a small pill, the time left and how many are still in (HudStatus).
+		Status = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 12) }),
+		-- Under it: a game's line of the moment (who has the bomb), bare text.
+		Note = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 74), Width = 560 }),
+		-- Top left, under Roblox's own buttons: which game, and how far into the session (HudRound).
+		Round = table.freeze({ Anchor = Vector2.new(0, 0), Position = UDim2.new(0, 24, 0, 58), Width = 300 }),
 		-- Top right: your saved gold, and under it the four seats.
 		Gold = table.freeze({ Anchor = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0, 18) }),
 		Players = table.freeze({ Anchor = Vector2.new(1, 0), Position = UDim2.new(1, -24, 0, 104), Width = 220, Row = 34 }),
@@ -316,7 +318,7 @@ Tokens.Layout = table.freeze({
 		-- knockout camera's shot in the middle (HudKnockout); Position is the card's bottom left
 		Knockout = table.freeze({ Position = UDim2.new(0, 0, 1, -128), Scale = 1 }),
 		-- everyone else's eliminations, top left (HudFeed)
-		Feed = table.freeze({ Anchor = Vector2.new(0, 0), Position = UDim2.new(0, 24, 0, 104), Width = 300 }),
+		Feed = table.freeze({ Anchor = Vector2.new(0, 0), Position = UDim2.new(0, 24, 0, 112), Width = 300 }),
 		-- Bottom centre, above nothing: the bottom left is the engine's tray of input chips.
 		Charge = table.freeze({ Anchor = Vector2.new(0.5, 1), Position = UDim2.new(0.5, 0, 1, -110), Width = 240 }),
 		-- Under the gold: your level and how far into it you are. The seats sit under that.
@@ -339,8 +341,10 @@ Tokens.Layout = table.freeze({
 		Base = 400,
 		Margin = 12,
 		Shadows = false,
-		Status = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 6), Width = 300, Compact = true }),
-		Note = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 62), Width = 240, Compact = true }),
+		Status = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 4), Compact = true }),
+		-- under the pill: the pips and "2 of 6 games" (the top left is the seats' on a phone)
+		Round = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 46), Width = 160, Align = "Center", Compact = true }),
+		Note = table.freeze({ Anchor = Vector2.new(0.5, 0), Position = UDim2.new(0.5, 0, 0, 72), Width = 300, Compact = true }),
 		Gold = table.freeze({ Anchor = Vector2.new(1, 0), Position = UDim2.new(1, -12, 0, 8) }),
 		-- Under Roblox's own menu buttons on the left: the right is busy with the gold and the
 		-- touch buttons further down.
