@@ -100,7 +100,7 @@
           "CFrame": [
             0,
             -8,
-            0,
+            1600,
             1,
             0,
             0,
@@ -123,8 +123,8 @@
             12
           ],
           "CFrame": [
-            0,
-            0.5,
+            -132,
+            0.6,
             0,
             1,
             0,
@@ -179,6 +179,9 @@
       }
     },
     "ReplicatedFirst": {
+      "BumpLoading": {
+        "$path": "src/ReplicatedFirst/BumpLoading.client.lua"
+      },
       "BACKEND": {
         "$className": "Folder",
         "Shared": {
@@ -265,22 +268,23 @@
       "$properties": {
         "Technology": "Future",
         "GlobalShadows": true,
-        "Brightness": 2.6,
-        "ClockTime": 14.5,
-        "GeographicLatitude": 35,
+        "Brightness": 2.2,
+        "ClockTime": 0,
+        "GeographicLatitude": -2,
         "EnvironmentDiffuseScale": 1,
         "EnvironmentSpecularScale": 1,
-        "ShadowSoftness": 0.25,
+        "ShadowSoftness": 0.2,
         "Ambient": [
-          0.32,
-          0.32,
-          0.38
+          0.3,
+          0.3,
+          0.4
         ],
         "OutdoorAmbient": [
-          0.58,
-          0.58,
-          0.66
-        ]
+          0.6,
+          0.6,
+          0.82
+        ],
+        "ExposureCompensation": 0.35
       }
     }
   }
