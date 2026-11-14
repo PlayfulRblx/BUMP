@@ -794,7 +794,13 @@ and shows that one line, white Gotham Bold on a plain dark screen, at DisplayOrd
 covers the engine's own UI loading screen (Sunshine Valley's art, DisplayOrder 100000, engine
 code, left alone). It fades out once the game is loaded, `PlayerDataLoaded` is set, your character
 is in, and the engine's screen is done (`LoadingScreenActive` off and its `LoadingScreenFade`
-hidden): at least 1.5 s, at most 30 s. Prints `[Loading] hiding after N s`. Measured in Studio:
+hidden): at least 2.4 s, at most 30 s. Prints `[Loading] hiding after N s`. Then (the user: "quick
+and simple with a bit of comedic value ... Something like a "Yipeee" meme audio or "Teehee""; those
+clips are other people's recordings and the licensed library has no such voice, so they picked a
+kazoo): "Pls hire me Cinnamon," bounces in to Pro Sound Effects' "Kazoo Fanfare 3" (9114898444,
+royal announcement, waited for up to 1 s to load so they land together), then "hehe" pops in
+under it in yellow, tilted and wiggling; the kazoo fades with the screen. Seen in Play: the kazoo
+played, "hehe" popped, hidden at 3.3 s. Not heard by the user. Measured in Studio:
 3.2 s, the engine's screen already hidden underneath. Adding a top-level mapping to the project
 files needs the dev server's generated project (`.bump.rojo.project.json`, written at `dev-all`
 start) rewritten: `dev_tasks.write_common_rojo_project(dev_tasks.build_common_rojo_project())`
