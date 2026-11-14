@@ -982,6 +982,16 @@ end
 -- spawn into each round, their character and camera should be facing towards the direction of
 -- the stage"). Roblox's default camera turns from its current look, so setting it once holds.
 local CAMERA_BACK, CAMERA_UP = 14, 5
+-- The gameplay field of view, as the camera had it before anything changed it (Platformer.start).
+-- A camera layer (the intro, the knockout camera) hands the normal camera back its own view each
+-- frame, but only if nothing else wrote to the camera that frame; writing the view here while one
+-- runs (you're placed at the intro's start, or sent to the stand during the knockout shot) skipped
+-- that, so the normal camera kept the layer's field of view (80, 46...) for good. So this sets the
+-- field of view back too, and riding a ball widens from this, not from whatever it found.
+local gameFov = 70
+function Platformer.GameFov(): number
+	return gameFov
+end
 function onPlaced(cframe: CFrame)
 	local look = flat(cframe.LookVector)
 	if look.Magnitude < 0.1 then
@@ -1010,6 +1020,7 @@ function onPlaced(cframe: CFrame)
 		facing = look
 		local at = root.Position + Vector3.new(0, 2, 0)
 		camera.CFrame = CFrame.lookAt(at - look * CAMERA_BACK + Vector3.new(0, CAMERA_UP, 0), at)
+		camera.FieldOfView = gameFov
 	end)
 end
 
@@ -1207,6 +1218,10 @@ end
 
 function Platformer.start()
 	bindButtons()
+	local camera = Workspace.CurrentCamera
+	if camera and camera.FieldOfView > 1 then
+		gameFov = camera.FieldOfView
+	end
 	Remotes.HookYou(function(name, data)
 		if name == "Knock" and data and typeof(data.Velocity) == "Vector3" then
 			onKnocked(data.Velocity, data.Kind)

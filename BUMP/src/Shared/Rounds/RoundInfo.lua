@@ -4,8 +4,10 @@
 	description for its intro card.
 
 	The server keeps the round's state as attributes on ReplicatedStorage.BumpRound:
-	    Phase        "Practice" | "Lobby" | "Changeover" | "Intro" | "Play" | "Results" | "Standings"
-	                 (Changeover: between games, the old arena flying off and the next one arriving)
+	    Phase        "Practice" | "Lobby" | "Changeover" | "Intermission" | "Intro" | "Play" | "Results"
+	                 | "Standings" (Changeover: between games, the old arena flying off and the next one
+	                 arriving; Intermission: a breather on the plaza between games, Rounds.Intermission)
+	    NextMinigame the id of the game coming up, during the Intermission
 	    EndsAt       workspace:GetServerTimeNow() when this phase ends (lobby, intro, game clock)
 	    GameIndex, GameCount
 	    Minigame     the id of the game being played

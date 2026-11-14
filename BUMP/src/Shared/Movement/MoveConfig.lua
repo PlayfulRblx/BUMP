@@ -184,6 +184,7 @@ return {
 		Intro = 14, -- the cutscene's 11 s and the 3, 2, 1 (2026-11-14: "twice as long"; was 8.5, 7, 6)
 		IntroCountdown = 3,
 		Results = 6,
+		Intermission = 15, -- seconds on the plaza between games, to breathe and shop (2026-11-14)
 		Standings = 9,
 		Gold1 = 12, -- gold by place
 		Gold2 = 9,

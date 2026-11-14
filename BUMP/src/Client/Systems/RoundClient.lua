@@ -90,13 +90,13 @@ local function watch(folder: Instance)
 		local value = folder:GetAttribute(key)
 		if key == "Players" or key == "Results" or key == "Standings" then
 			set(key, decode(value))
-		elseif key == "Minigame" then
-			set("Minigame", RoundInfo.Minigames[value] or false)
+		elseif key == "Minigame" or key == "NextMinigame" then
+			set(key, RoundInfo.Minigames[value] or false)
 		elseif key ~= "EndsAt" and key ~= "Frozen" then
 			set(key, value)
 		end
 	end
-	for _, key in { "Phase", "GameIndex", "GameCount", "Minigame", "Alive", "Total", "Note", "Players", "Results", "Standings" } do
+	for _, key in { "Phase", "GameIndex", "GameCount", "Minigame", "NextMinigame", "Alive", "Total", "Note", "Players", "Results", "Standings" } do
 		read(key)
 		folder:GetAttributeChangedSignal(key):Connect(function()
 			read(key)
@@ -108,7 +108,7 @@ local function watch(folder: Instance)
 		local phase = values.Phase
 		if phase == "Play" then
 			set("TimeLeft", math.ceil(left))
-		elseif phase == "Lobby" or phase == "Intro" then
+		elseif phase == "Lobby" or phase == "Intro" or phase == "Intermission" then
 			set("Countdown", math.ceil(left))
 		end
 	end)

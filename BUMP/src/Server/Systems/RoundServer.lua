@@ -479,6 +479,19 @@ local function loop()
 				if #humans() == 0 then
 					break
 				end
+				-- a breather on the plaza before the next game (the user, 2026-11-14: "give me a 15
+				-- second intermission time between rounds"): roam, shop, see what's next
+				if index < Rounds.Games then
+					local nextId = RoundInfo.Playlist[(index % #RoundInfo.Playlist) + 1]
+					local forcedNext = RunService:IsStudio() and folder:GetAttribute("DebugGame")
+					if type(forcedNext) == "string" and GAMES[forcedNext] then
+						nextId = forcedNext
+					end
+					set("NextMinigame", nextId)
+					phase("Intermission", Rounds.Intermission)
+					waitUntil(now() + Rounds.Intermission)
+					set("NextMinigame", "")
+				end
 			end
 			if #humans() > 0 then
 				standings()

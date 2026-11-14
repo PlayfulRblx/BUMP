@@ -138,6 +138,9 @@ local function screenTexts(round: Instance): { string }
 		return { "BUMP!", "WAITING FOR PLAYERS", "PRACTICE IN THE YARD" }
 	elseif phase == "Lobby" then
 		return { "BUMP!", string.format("STARTING IN %d", left), "GET ON THE PLAZA!" }
+	elseif phase == "Intermission" then
+		local coming = RoundInfo.Minigames[round:GetAttribute("NextMinigame") or ""]
+		return { coming and string.upper(coming.Title) or "NEXT UP", string.format("NEXT GAME IN %d", left), "SHOP IS OPEN!" }
 	elseif phase == "Changeover" then
 		return { title, "NEXT UP!", game_ }
 	elseif phase == "Intro" then

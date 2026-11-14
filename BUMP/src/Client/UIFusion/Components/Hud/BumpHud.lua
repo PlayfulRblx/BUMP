@@ -4,7 +4,8 @@
 	round's phase calls for:
 
 	    Practice   your gold only: no round is running (the test yard)
-	    Lobby      the count to the next session and who's in
+	    Lobby      the count to the next session and who's in (a pill at the top)
+	    Intermission  between games: what's up next and the count to it (the same pill)
 	    Intro      the next game's title card over the camera's flyover (cinema bars), then
 	               3, 2, 1 and GO! as play starts
 	    Play       the game's status bar, the seats, the dash charge
@@ -72,7 +73,7 @@ return function(scope, props)
 						inner:HudRound({ Source = source, Layout = layout, Shown = phaseIs("Play") }),
 						inner:HudPlayers({ Source = source, Layout = layout, Shown = phaseIs("Play", "Results", "Intro") }),
 						inner:HudCharge({ Source = source, Layout = layout }),
-						inner:HudLobby({ Source = source, Layout = layout, Shown = phaseIs("Lobby") }),
+						inner:HudLobby({ Source = source, Layout = layout, Shown = phaseIs("Lobby", "Intermission") }),
 						inner:HudIntro({ Source = source, Layout = layout, Shown = phaseIs("Intro") }),
 						inner:HudHero({ Source = source, Layout = layout }),
 						inner:HudResults({ Source = source, Layout = layout, Shown = phaseIs("Results") }),

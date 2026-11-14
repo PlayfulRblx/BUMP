@@ -215,7 +215,8 @@ local function start(ball: BasePart)
 	trail.Parent = root
 	ride.trail = trail
 	local camera = Workspace.CurrentCamera
-	baseFov = baseFov or (camera and camera.FieldOfView) or 70
+	-- from the gameplay field of view, not whatever the camera has right now (a camera layer's)
+	baseFov = Platformer.GameFov()
 	Platformer.SetExternal(handler)
 	Platformer.SetExternalMove("Ride")
 end

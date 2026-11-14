@@ -13,9 +13,10 @@
 	plays (Kit/FakeRound), which is what lets the board show the real HUD.
 
 	Values the HUD reads:
-	    Phase        "Practice" (the test yard, no round) | "Lobby" | "Intro" | "Play" | "Results"
-	                 | "Standings"
-	    Countdown    seconds left in Lobby or Intro
+	    Phase        "Practice" (the test yard, no round) | "Lobby" | "Intermission" | "Intro" | "Play"
+	                 | "Results" | "Standings"
+	    NextMinigame the coming game's card (as Minigame), during the Intermission
+	    Countdown    seconds left in Lobby, Intermission or Intro
 	    GameIndex, GameCount   which game of the playlist this is (2 of 5)
 	    Minigame     { Id, Title, Blurb, Controls = { { Key, Label }, ... } }
 	    TimeLeft     seconds left in the game being played
