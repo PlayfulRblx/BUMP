@@ -91,6 +91,17 @@ function Friends.Look(userId: number): HumanoidDescription?
 	return ok and description or nil
 end
 
+-- A friend's avatar if it's already been fetched, else nil (and it starts fetching it for next
+-- time): never waits, so a slow or rate-limited web call can't hold a game's bots up.
+function Friends.Ready(userId: number): HumanoidDescription?
+	local cached = looks[userId]
+	if cached == nil then
+		task.spawn(Friends.Look, userId)
+		return nil
+	end
+	return cached or nil
+end
+
 -- Starts fetching these friends' avatars now, so they're ready when the bots are built.
 function Friends.Prefetch(userIds: { number })
 	for _, userId in userIds do

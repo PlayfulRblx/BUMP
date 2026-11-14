@@ -40,6 +40,7 @@ local Rounds = Tuning.Of("Rounds")
 local GAMES = {
 	Bump = require("@GameServer/Rounds/BumpGame"),
 	Bomber = require("@GameServer/Rounds/BomberGame"),
+	Meltdown = require("@GameServer/Rounds/MeltdownGame"),
 }
 
 local RoundServer = {}
@@ -252,7 +253,9 @@ local function playGame(index: number, gameId: string)
 		if participant.Model then
 			participant.Model:PivotTo(cframe)
 		else
-			local look = participant.FaceId and Friends.Look(participant.FaceId) or nil
+			-- the friend's avatar if it's here already (a web call that hasn't come back, or was
+			-- turned away, must not hold the game up: the bot is plain this time)
+			local look = participant.FaceId and Friends.Ready(participant.FaceId) or nil
 			participant.Model = Bots.Spawn(participant.Id, participant.Name, participant.Seat, cframe, look)
 		end
 		return participant.Model
@@ -277,7 +280,7 @@ local function playGame(index: number, gameId: string)
 			local flat = Vector3.new(root.Position.X - origin.X, 0, root.Position.Z - origin.Z)
 			local out = flat.Magnitude > 1 and flat.Unit or Vector3.new(1, 0, 0)
 			local at = origin + out * math.min(flat.Magnitude, World.PitRadius - 8) - Vector3.new(0, 1, 0)
-			if reason == "blew up" then
+			if reason == "blew up" or reason == "melted" then
 				at = root.Position
 			end
 			Remotes.Fx("KO", { Position = at, Out = out, Color = Bots.SeatColor(participant.Seat), Final = left <= 2 })
@@ -341,6 +344,9 @@ local function playGame(index: number, gameId: string)
 
 	-- intro: everyone in place and frozen while the card shows
 	phase("Intro", Rounds.Intro)
+	-- every client times the intro off this (EndsAt): placing everyone can take a while (a bot's
+	-- body loading its avatar), and it mustn't push Play past the countdown's GO
+	local introEnds = now() + Rounds.Intro
 	set("Frozen", true)
 	if minigame.Place then
 		minigame.Place(ctx)
@@ -351,7 +357,7 @@ local function playGame(index: number, gameId: string)
 	for _, participant in aliveList() do
 		Spotlight.Add(characterOf(participant), Bots.SeatColor(participant.Seat))
 	end
-	waitUntil(now() + Rounds.Intro)
+	waitUntil(introEnds)
 
 	phase("Play")
 	set("Frozen", false)
@@ -463,6 +469,11 @@ local function loop()
 			set("GameCount", Rounds.Games)
 			for index = 1, Rounds.Games do
 				local gameId = RoundInfo.Playlist[((index - 1) % #RoundInfo.Playlist) + 1]
+				-- Studio only: a minigame's id in BumpRound's "DebugGame" attribute plays that one every time
+				local forced = RunService:IsStudio() and folder:GetAttribute("DebugGame")
+				if type(forced) == "string" and GAMES[forced] then
+					gameId = forced
+				end
 				playGame(index, gameId)
 				if #humans() == 0 then
 					break

@@ -49,8 +49,21 @@ RoundInfo.Minigames.Bomber = {
 	NoClock = true,
 }
 
--- The order the playlist draws from, round and round. TILT! joins when it's built.
-RoundInfo.Playlist = { "Bump", "Bomber" }
+RoundInfo.Minigames.Meltdown = {
+	Id = "Meltdown",
+	Title = "MELTDOWN",
+	Blurb = "The lava is rising. Climb the tower: crumbling ledges, moving platforms, bounce pads and wall-jump chimneys. Pound a platform to shake everyone off it.",
+	Controls = {
+		{ Key = "Space", Label = "Jump" },
+		{ Key = "Space x2", Label = "Float jump" },
+		{ Key = "Wall + Space", Label = "Wall jump" },
+		{ Key = "Air + C", Label = "Pound: shake it" },
+	},
+	NoClock = true,
+}
+
+-- The order the playlist draws from, round and round.
+RoundInfo.Playlist = { "Bump", "Bomber", "Meltdown" }
 
 -- The seat colours (seats 1 to 8), for the world: balls, spotlights, the intro's name pops. The UI
 -- has the same in its tokens (Tokens.Colors.Seat1..8).
@@ -79,5 +92,9 @@ RoundInfo.AITag = "[AI]"
 -- meanwhile it has this attribute, and the lobby's fall catch leaves it alone.
 RoundInfo.KnockoutHold = 1.5
 RoundInfo.KnockoutHoldAttr = "BumpKnockoutHold"
+-- On a floor part: a bounce pad, launching whoever lands on it this many studs up (MELTDOWN).
+RoundInfo.BounceAttr = "BumpBounce"
+-- On a floor part's model: it moves; whoever stands on it is carried (MELTDOWN's moving platforms).
+RoundInfo.MoverAttr = "BumpMover"
 
 return RoundInfo

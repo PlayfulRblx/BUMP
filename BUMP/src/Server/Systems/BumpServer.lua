@@ -45,7 +45,7 @@ local DUMMY_SPOTS = {
 }
 
 local lastBumpAt = {} -- [Player] = os.clock()
-local actHandlers = {} -- [action] = function(player, ...): other systems' client actions
+local actHandlers = {} -- [action] = { function(player, ...) }: other systems' client actions
 -- A game can take over a body hit (BUMP: hitting someone on a ball hits their ball instead):
 -- function(attacker: Model, target: Model, kind: string, throw: Vector3, reach: number) -> true
 -- if it dealt with it (it checks its own reach).
@@ -184,9 +184,12 @@ local function characterAdded(character: Model)
 	end
 end
 
--- Another system's client action on the shared "Act" stream ("Mount", "Dismount"...).
+-- Another system's client action on the shared "Act" stream ("Mount", "Dismount"...). Several
+-- systems can listen for one ("Pound": BUMP's ripple and MELTDOWN's shake), each checking whether
+-- its own game is running.
 function BumpServer.OnAct(action: string, handler)
-	actHandlers[action] = handler
+	actHandlers[action] = actHandlers[action] or {}
+	table.insert(actHandlers[action], handler)
 end
 
 function BumpServer.SetBodyHitHandler(handler)
@@ -273,7 +276,9 @@ function BumpServer.start()
 		elseif action == "Bump" then
 			onBump(player, a, b)
 		elseif actHandlers[action] then
-			actHandlers[action](player, a, b)
+			for _, handler in actHandlers[action] do
+				task.spawn(handler, player, a, b)
+			end
 		end
 	end)
 

@@ -12,6 +12,7 @@ local Workspace = game:GetService("Workspace")
 
 local BumpSounds = require("@Shared/Audio/BumpSounds")
 local Kit = require("@Client/Fx/FxKit")
+local RoundInfo = require("@Shared/Rounds/RoundInfo")
 local puff = Kit.Puff
 local ring = Kit.Ring
 local stars = Kit.Stars
@@ -135,7 +136,9 @@ local function onRipple(data)
 		if tile:IsA("Model") and tile:GetAttribute("Ring") ~= nil and not tile:GetAttribute("Falling") then
 			local pivot = tile:GetPivot().Position
 			local distance = Vector3.new(pivot.X - origin.X, 0, pivot.Z - origin.Z).Magnitude
-			if distance <= radius then
+			-- only tiles at the pound's own level (MELTDOWN's tower has tiers), and none that move
+			local level = math.abs(pivot.Y - origin.Y) < 4 and not tile:GetAttribute(RoundInfo.MoverAttr)
+			if distance <= radius and level then
 				local lift = height * (1 - distance / radius) + 0.3
 				task.delay(distance / speed, function()
 					for _, part in tile:GetChildren() do

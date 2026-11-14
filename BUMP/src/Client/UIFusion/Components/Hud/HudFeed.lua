@@ -17,7 +17,7 @@ local peek = Fusion.peek
 
 local LINE_SECONDS = 4.5
 local MAX_LINES = 4
-local WHY = { ["blew up"] = "blew up", ["fell alone"] = "fell off", fell = "fell off", ["knocked off"] = "was knocked off" }
+local WHY = { ["blew up"] = "blew up", ["fell alone"] = "fell off", fell = "fell off", ["knocked off"] = "was knocked off", melted = "melted" }
 
 return function(scope, props)
 	local layout = props.Layout.Feed

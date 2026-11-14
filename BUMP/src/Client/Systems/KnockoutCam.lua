@@ -91,9 +91,9 @@ end
 local function begin(data)
 	stop()
 	data = data or {}
-	-- a fall nobody caused: the Mario-style fall instead (FallCam); blown up or knocked off by
-	-- someone, this camera shows it
-	if not data.By and data.Reason ~= "blew up" and data.Reason ~= "no body" then
+	-- a fall nobody caused: the Mario-style fall instead (FallCam); blown up, melted (MELTDOWN's
+	-- lava) or knocked off by someone, this camera shows it
+	if not data.By and data.Reason ~= "blew up" and data.Reason ~= "no body" and data.Reason ~= "melted" then
 		FallCam.Play(false)
 		return
 	end

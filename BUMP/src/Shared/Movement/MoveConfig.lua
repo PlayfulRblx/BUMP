@@ -174,7 +174,7 @@ return {
 	Rounds = {
 		Seats = 8, -- contestants in every game: players first, bots fill the rest (the user,
 		-- 2026-11-13: "Let's get 4 more AIs in"; was 4)
-		Games = 5, -- games in a session's playlist
+		Games = 6, -- games in a session's playlist (2026-11-14: 6 with MELTDOWN in, so each plays twice; was 5)
 		Lobby = 12, -- seconds of count before a session (Studio: StudioLobby)
 		StudioLobby = 5,
 		-- A game's intro (the user, 2026-11-13: "a nice AAA ADHD nintendo level intro with title card
@@ -286,5 +286,56 @@ return {
 		TickSlow = 1.0, -- seconds between ticks with the fuse fresh
 		TickFast = 0.1, -- and at the very end
 		FallDepth = 30,
+	},
+
+	-- ═══ MELTDOWN: climb away from the lava ══════════════════════════════════════════
+	-- The user (2026-11-14): "a third gamemode ... completely new, intense, and incredibly fun";
+	-- they picked a climb up a tower of platforms with lava rising, last one standing, with
+	-- crumbling and moving platforms, bounce pads, wall-jump chimneys, lava fireballs, surges and
+	-- falling debris. Every number a first guess.
+	Melt = {
+		Tiers = 14, -- tiers of platforms; the summit is the last (was 21 at 5 apart)
+		TierGap = 7.5, -- studs between tiers: over a single jump's 7, so each tier takes a float jump
+		-- (the user, 2026-11-14: "Make the player utilise their float jump"; was 5)
+		BaseInner = 52, -- the start ring of hex tiles round the tower, from here (tiles poke in this
+		-- far at most; the hex tiles make the inner edge jagged, a few studs deep)
+		BaseOuter = 82, -- to here (tile middles)
+		StartRadius = 68, -- everyone starts on the base this far out (the intro's fly-by passes 16 inside)
+		PitDrop = 10, -- the pit's floor under the tower is this far below the start ring: an early
+		-- fall lands there and you climb back up, until the lava floods it
+		LavaStart = -32, -- the lava's top at the start (the start ring is at -6, the pit floor -16)
+		Grace = 5, -- seconds of play before it rises
+		RiseStart = 0.7, -- studs a second, rising to
+		RiseMax = 2.2,
+		RiseRamp = 80, -- over this many seconds
+		LavaStop = 7, -- it stops this far below the summit's top: the last fight is on the summit
+		SummitCrumble = 26, -- once the lava is this close to the summit, the top tiers start to crumble
+		SummitEvery = 1.4, -- a platform up there every this many seconds
+		CrumbleWarn = 0.6, -- a crumbling platform shakes this long once landed on, then falls
+		CrumbleBack = 6, -- and comes back after this, if the lava isn't there
+		BounceHeight = 26, -- a bounce pad throws you this high: three tiers
+		SurgeFirst = 16, -- seconds before the first surge
+		SurgeMin = 12, -- then one every this to
+		SurgeMax = 18,
+		SurgeWarn = 1.5, -- the warning (rumble, shake, "SURGE!") before it lurches up
+		SurgeRise = 8, -- studs it lurches up
+		SurgeTime = 1.5, -- over this long
+		FireballFirst = 8, -- seconds in before the first fireball
+		FireballSlow = 4.5, -- seconds between fireballs at the start
+		FireballFast = 1.4, -- and at the hottest
+		FireballFlight = 1.1, -- seconds from the lava to landing (the ring warns all that time)
+		FireballRadius = 6, -- anyone this close to where it lands is hit
+		FireballPush = 55,
+		FireballLift = 24,
+		DebrisFirst = 30, -- seconds in before chunks start falling
+		DebrisSlow = 7,
+		DebrisFast = 2.5,
+		DebrisWarn = 1.2, -- the shadow shows this long before it lands
+		DebrisRadius = 5,
+		DebrisPush = 40,
+		DebrisLift = 30,
+		ShakePush = 38, -- a ground pound staggers everyone else on that platform this hard
+		ShakeLift = 18,
+		TimeLimit = 180, -- hidden: survivors share 1st
 	},
 }

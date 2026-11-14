@@ -152,6 +152,11 @@ local function tilesOf(folder: Instance, centre: Vector3)
 end
 
 local function centreOf(folder: Instance): Vector3
+	-- an arena that says where its middle is (MELTDOWN's tower: its ring-0 tiles are the start ring)
+	local given = folder:GetAttribute("Centre")
+	if typeof(given) == "Vector3" then
+		return given
+	end
 	local sum, count = Vector3.zero, 0
 	for _, tile in folder:GetChildren() do
 		if tile:IsA("Model") and tile:GetAttribute("Ring") == 0 then
@@ -234,7 +239,8 @@ local function playIn(folder: Instance)
 	stage.Parent = Workspace
 	local reach = 0
 	for _, tile in tiles do
-		reach = math.max(reach, (tile.home.Position - centre).Magnitude)
+		local out = tile.home.Position - centre
+		reach = math.max(reach, Vector3.new(out.X, 0, out.Z).Magnitude) -- across, not up (a tower is tall)
 	end
 	local started = os.clock()
 	local left = #tiles

@@ -23,6 +23,8 @@
 	    Air Whoosh High End Ascending Short 3           3.8 s, the dash charging (sped up as it fills)
 	    Whoosh Back Zoom Swoosh Fast Camera             1.4 s, the dash launching
 	    impact_explosion_03.mp3 (built-in, slowed)      a ball landing after a hop
+	MELTDOWN (2026-11-14), Pro Sound Effects: bubbles, an earthquake rumble, fireball whooshes, a
+	shale break, rocks moving, a slide whistle (see the entries).
 ]]
 
 return table.freeze({
@@ -83,4 +85,12 @@ return table.freeze({
 	KnockoutPop = "rbxassetid://9113263444", -- "Balloon Pop 2": their name popping in
 	KnockoutTag = "rbxassetid://1848271878", -- APM "Fairytown Waltz - Tag3", a comedy tag: the reveal
 	KnockoutVolume = 0.55,
+	-- MELTDOWN (2026-11-14), Pro Sound Effects (Client/Fx/MeltFx, Client/Systems/MeltClient):
+	LavaBubble = "rbxassetid://9112752570", -- "Bubbles Dribble Small Bloops 1", 13.8 s: the lava's bubbling, looped and pitched down
+	LavaRumble = "rbxassetid://9112775165", -- "Earthquake Rumble 1", 36 s loop: a surge coming
+	Fireball = "rbxassetid://9114428748", -- "Fireball Burning Whoosh By 2", 5.4 s: a fireball's flight
+	DebrisFall = "rbxassetid://9114428742", -- "Fireball Burning Whoosh By 1", slowed: a chunk falling
+	DebrisCrash = "rbxassetid://9119037874", -- "Shale Break 15", 0.8 s: a chunk landing
+	Crumble = "rbxassetid://9118691819", -- "Rocks Movement 1", 1.2 s: a platform breaking up
+	Bounce = "rbxassetid://9119197913", -- "Slide Whistle 2", sped up: a bounce pad
 })

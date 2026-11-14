@@ -22,6 +22,7 @@
 local HttpService = game:GetService("HttpService")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
 local RoundInfo = require("@Shared/Rounds/RoundInfo")
@@ -39,7 +40,12 @@ local CATCH_Y = -45 -- below this (and not in a game) you're put back
 local CATCH_AFTER = 3 -- seconds down there first: your own client asks sooner, once its fall has played
 
 local fx: Folder = nil
+local jumbotron: Model = nil
 local screens = {} -- { TextLabel } on the jumbotron, in face order
+-- MELTDOWN's tower climbs right through where the jumbotron hangs: it rises out of the way while
+-- that game is on (it touches nothing either way)
+local JUMBO_LIFT = 75
+local LIFTED_PHASES = { Changeover = true, Intro = true, Play = true, Results = true }
 local celebration = {} -- ParticleEmitters on while results are up
 local fireworkSpots = {} -- Attachments high over the city
 
@@ -85,6 +91,7 @@ local function buildJumbotron()
 	local jumbo = Instance.new("Model")
 	jumbo.Name = "Jumbotron"
 	jumbo.Parent = fx
+	jumbotron = jumbo
 	local centre = World.Centre + Vector3.new(0, JUMBO_Y, 0)
 	for index = 0, 5 do
 		local angle = math.rad(60 * index + 30)
@@ -458,6 +465,21 @@ function Lobby.start()
 
 	local round = ReplicatedStorage:WaitForChild(RoundInfo.Folder)
 	task.spawn(catchFalls, round)
+	task.spawn(function()
+		local home = jumbotron:GetPivot()
+		local lift = 0
+		while true do
+			local dt = RunService.Heartbeat:Wait()
+			local want = (round:GetAttribute("Minigame") == "Meltdown" and LIFTED_PHASES[round:GetAttribute("Phase") or ""]) and JUMBO_LIFT or 0
+			if math.abs(want - lift) > 0.01 then
+				lift += (want - lift) * math.min(1, dt * 1.5)
+				if math.abs(want - lift) < 0.05 then
+					lift = want
+				end
+				jumbotron:PivotTo(home + Vector3.new(0, lift, 0))
+			end
+		end
+	end)
 	task.spawn(function()
 		local rng = Random.new()
 		while true do

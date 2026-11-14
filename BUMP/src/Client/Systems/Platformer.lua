@@ -44,6 +44,7 @@ local InputHandler = require("@Engine/Shared/Handlers/InputHandler")
 local Ragdoll = require("@Shared/Ragdoll")
 local Remotes = require("@Shared/Movement/Remotes")
 local RoundInfo = require("@Shared/Rounds/RoundInfo")
+local FloorUnder = require("@Shared/Movement/FloorUnder")
 local PowerUpInfo = require("@Shared/PowerUps/PowerUpInfo")
 local Moves = require("@Shared/Movement/Moves")
 local Tuning = require("@Shared/Movement/Tuning")
@@ -106,6 +107,7 @@ local launchY = 0 -- the height it left from
 local external = nil
 local standing = true -- false while knocked flat (ragdoll): the movers are off
 local poseFor = 0 -- how long the Hero pose (Platformer.Pose) holds
+local carried = { model = nil, at = Vector3.zero } -- the moving platform under you, and where it was
 
 -- While the round says so (a game's intro), nobody moves.
 local function frozen(): boolean
@@ -587,6 +589,15 @@ local function onLanded()
 	landedAt = now()
 	airDived = false
 	airJumped = false
+	-- a bounce pad (MELTDOWN) throws you up again, keeping your speed
+	local floor = FloorUnder(body.character, body.root)
+	local bounce = floor and floor:GetAttribute(RoundInfo.BounceAttr)
+	if type(bounce) == "number" and move ~= "Knocked" then
+		airPeakY = body.root.Position.Y
+		launch(flat(body.root.AssemblyLinearVelocity), riseFor(bounce))
+		setMove("PoundJump")
+		return
+	end
 	local drop = airPeakY - body.root.Position.Y
 	if move == "PoundFall" or move == "PoundSpin" then
 		setMove("PoundLand")
@@ -714,6 +725,32 @@ local function step(dt: number)
 	end
 	local onGround = grounded()
 	local t = since()
+
+	-- a moving platform (MELTDOWN) carries you: moved by however far it went since the last frame
+	-- (the movement here is all world-space speed, which a floor's motion never adds to)
+	local floor = onGround and FloorUnder(body.character, root) or nil
+	local floorModel = floor and floor.Parent
+	if floorModel and floorModel:IsA("Model") and floorModel:GetAttribute(RoundInfo.MoverAttr) then
+		local at = floorModel:GetPivot().Position
+		if carried.model == floorModel then
+			local delta = at - carried.at
+			if delta.Magnitude > 0 and delta.Magnitude < 3 then
+				root.CFrame += delta
+			end
+		end
+		carried.model, carried.at = floorModel, at
+	else
+		carried.model = nil
+	end
+	-- walking onto a bounce pad throws you up too (landing on one is onLanded's)
+	local bounce = floor and floor:GetAttribute(RoundInfo.BounceAttr)
+	if type(bounce) == "number" and GROUND_MOVES[move] and move ~= "PoundLand" and not frozen() then
+		airJumped = false
+		airPeakY = root.Position.Y
+		launch(flat(root.AssemblyLinearVelocity), riseFor(bounce))
+		setMove("PoundJump")
+		return
+	end
 
 	-- landing and leaving the ground
 	if GROUND_MOVES[move] then

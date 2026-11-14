@@ -8,7 +8,7 @@ turned down a board); the first controls stage has the core jumps (single/double
 jump, backflip, ground pound, wall jump), dive and roll, and a Bump shove. They did not pick a
 thrown hat. Gold buys power-ups and their upgrades (settled 2026-11-13). Ask rather than guess.
 
-**Where the build is:** controls, rounds with bots, two minigames (BUMP, Bomber Bloxians), the
+**Where the build is:** controls, rounds with bots, three minigames (BUMP, Bomber Bloxians, MELTDOWN), the
 UI kit, power-ups and progression bought with gold (see "Power-ups and progression"), and the lobby: AR's neon city hub with the arena in its middle (see "The lobby"). Every number is
 a first guess until the user has played it: build a stage, measure it in Play, stop and say what
 to try.
@@ -251,7 +251,7 @@ zero, each explosion shrinks the arena, brief immunity after receiving it) and *
 floating platform tipping by where everyone stands). Their answers: bots that really play and fill
 empty seats to 4 in live servers; a lobby, then a playlist with intro cards and results, then final
 standings; gold by placing, saved; build the framework plus BUMP first, then Bomber, then TILT!.
-BUMP and Bomber Bloxians exist: the playlist (`RoundInfo.Playlist`) alternates them for five games, BUMP first. TILT! is next.
+BUMP, Bomber Bloxians and MELTDOWN (see "MELTDOWN") exist: the playlist (`RoundInfo.Playlist`) goes round them for six games (`Rounds.Games`, was five), BUMP first. TILT! was turned down for MELTDOWN as the third game (2026-11-14).
 
 | File | What it does |
 | --- | --- |
@@ -525,6 +525,37 @@ with bent limbs. **Not seen or still rough:** games are short (8 to 27 s, bots o
 or themselves off before the ring drops); the second-hit knock-off between bots happened 0 times in
 the games watched; two players together; a phone; how any of it feels to the user.
 
+## MELTDOWN (2026-11-14)
+
+The user: "Let's get a third gamemode in here. Probably something completely new, intense, and
+incredibly fun". Of SPINOUT (sweeper beams), SPLAT ZONE (paint the floor), MELTDOWN and TILT!, they
+picked MELTDOWN: a climb up a tower of floating platforms with lava rising, last one standing; all
+four tower pieces (crumbling, moving, bounce pads, wall-jump chimneys) and all three hazards (lava
+fireballs, surges, falling debris). Then, on the first tower: "the platforms of the tower should be
+spread out a bit more. Make the player utilise their float jump and less likely to bang their heads
+on platforms that are directly above each other".
+
+| File | What it does |
+| --- | --- |
+| `Shared/Minigames/MeltLayout.lua` (+ spec) | The tower as data from a seed: the start ring and pit floor tiles, 14 tiers of 5 platforms (`Kind` Solid / Crumble / Mover / Summit) round a core, pads, chimneys, and a link graph of the jumps a bot can make (`CanJump`); rebuilt from the next seed until the summit is reachable. `MoverOffset` / `MoverVelocity` from server time |
+| `Server/Rounds/Tower.lua` | Builds it in the pit (`HexArena` + `Centre` attributes, so ArenaShow plays it in bottom-up, tier pairs as rings); `PlatformUnder` (by height; `Tower.Base` the ring, `Tower.Pit` the pit floor), `Crumble` (shake, fall, back after `CrumbleBack` unless the lava's there), `SafeAbove`, movers moved each frame (carrying bots), the lava's `LavaY` / `LavaAt` / `LavaRate` |
+| `Server/Rounds/MeltdownGame.lua` | The game: the rise and surges, fireballs, debris, the summit's last stand, lava outs (`melted`, blamed on a hit in the last 4 s), the pound shake, power-ups. Prints `[Melt] ...` |
+| `Server/Rounds/MeltBots.lua` | The bots: assisted jumps flown exactly along the arc (a stock Humanoid steered by physics clipped edges and bounced off), skill-based misjudged leaps that fall short, a rest after each landing, routes by links-to-summit, pads, chimneys as hops wall to wall, climbing with the lava (waits when well ahead), shoves and dives (Bully) and pounds (Opportunist, Wildcard) after a calm start, dodging fireball and debris marks. In Studio each bot's `MeltBrain` attribute says what it's doing |
+| `Client/Systems/MeltClient.lua`, `Client/Fx/MeltFx.lua` | Each client moves the lava and the movers itself (smooth), dresses the lava (ForceField crust, embers, bubbles, bubbling louder as you near it), warms the picture near it, and sends `Act "Melted"` the moment your root is under its top (the server's copy of a falling body lags). MeltFx: fireballs with landing rings, falling rocks with shadows, splashes, crumbles, the shake's jolt, the surge's rumble and shake, melted bodies smoking |
+| `Shared/Movement/FloorUnder.lua` | The part under a body by a ray down: **Humanoid has no FloorPart** (reading it errors every frame) |
+
+**As built** (every number in `MoveConfig.Melt`):
+- **Layout:** tiers 7.5 apart (a single jump peaks at 7, so each takes a float jump); nothing overlaps a platform within 17 studs above or below it (two tiers: a float jump's reach); tiers alternate an inner and an outer ring a third of a step round, so a platform lines up again only three tiers up. Five a tier always (mixing counts broke the pattern and left empty tiers). The start ring (tiles poking in to radius 52; whole tiles only left notches up to 10 studs deep that bots walked into) and, 10 studs below, the **pit floor** under the tower: an early fall lands there and you climb back, until the lava floods it (about 15 to 20 s in). Without it a shove off the low tiers went straight into the lava and games ended in 30 s.
+- **Lava:** from -32, after a 5 s grace rising 0.7 to 2.2 studs a second over 80 s; surges every 12 to 18 s (rumble, "SURGE!", +8 in 1.5 s); it stops 7 under the summit, and once it's 26 from the top the top tiers crumble for good, one every 1.4 s.
+- **Hazards:** fireballs from 8 s (4.5 s apart down to 1.4) stagger whoever is within 6 of the ring; debris from 30 s (7 down to 2.5 s) knocks flat within 5 and cracks the platform.
+- **Fighting:** shoves stagger, dives throw; a ground pound shakes your platform (everyone else on it staggers, a crumbling one goes). Shockwave staggers everyone on your own level in reach (it used to reach every tier and threw five bots in at once); Second Chance puts you on a solid platform 10+ above the lava.
+- **Platformer:** a moving platform carries you (the CFrame delta of the floor's model each frame); landing or walking onto a pad (`RoundInfo.BounceAttr`) throws you as a PoundJump to its height, with a slide whistle.
+- **Elsewhere:** the jumbotron rises 75 studs out of the tower's way while MELTDOWN is on; KnockoutCam shows the self shot for "melted" (not FallCam's iris); the card says MELTED!; ArenaShow takes `Centre` and sizes its finale by flat reach; HitFx's ripple only bobs tiles at the pound's level; `BumpServer.OnAct` takes several listeners per action (BUMP and MELTDOWN both hear "Pound").
+
+**Found on the way, for every game:** RoundServer waited a full intro *after* `Place`, so a slow bot spawn pushed Play past the countdown's GO (the intro ran 20 to 40 s with avatar loads rate-limited); it now ends on the intro's own clock. Bots' friend avatars are taken only if already fetched (`Friends.Ready`), never waited for.
+
+**Measured in Play (2026-11-14, one idle player, seven bots):** 40 of 40 seeds build, about 48 platforms, 4 pads, 1 chimney; games of 45 to 65 s with 2 to 4 surges, 9 to 18 fireballs, 3 to 7 debris; bots about a tier every 1 to 2 s; a lava touch to KnockedOut in 0.09 s; on a mover 0.00 studs of drift over 6 studs of travel; a pad throws you 27 studs up; no game errors. Captured: the tower from the plaza with the pit flooded. **Not seen:** the summit's last stand (bots knocked each other out before the lava got near the top), the new lava colour, a human climbing it, a phone; how it feels.
+
 ## Round intro (2026-11-13)
 
 The user: "Let's give each round a nice AAA ADHD nintendo level intro with title card and camera pan
@@ -749,9 +780,13 @@ The master scripts build their load orders from that list.
 - Terrain `Decoration` and `GrassLength` can't be set by scripts; they're in the project files
   (`Workspace.Terrain`), as is `Lighting.Technology = Future`.
 - Specs (`*.spec.lua`) use the Nevermore Jest loader like the other games and aren't built. BUMP's
-  (2026-11-14): `Hex`, `BallPhysics`, `Moves`, `PowerUpInfo`, 22 cases. Nothing here runs Jest, so
-  they were checked by pasting their bodies into `execute_luau` in Edit with a small
-  describe/it/expect stand-in, against the built modules: all 22 passed.
+  (2026-11-14): `Hex`, `BallPhysics`, `Moves`, `PowerUpInfo`, `MeltLayout`, 28 cases. Nothing here
+  runs Jest, so they were checked by pasting their bodies into `execute_luau` in Edit with a small
+  describe/it/expect stand-in, against the built modules: all passed. **Trap:** a module required
+  from `execute_luau` stays cached after Rojo changes its Source; require a fresh Clone parented
+  next to it (relative requires need the parent), then destroy the clone.
+- Studio only: a minigame's id in `ReplicatedStorage.BumpRound`'s `DebugGame` attribute (set from
+  the Server view once Play starts, before the lobby count ends) plays that game every time.
 - History is on branch `bump-game` (2026-11-14): the work in seven commits by feature, then the
   tidy (the dead triple-jump chain removed, BumpBots, the Fx split, Moves, the specs).
 - The engine's demo switches (`Constants.DEMO`) default on. `MailDemo` posted a "Goodbye!" letter

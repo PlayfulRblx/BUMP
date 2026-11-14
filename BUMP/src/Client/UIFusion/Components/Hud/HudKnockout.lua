@@ -31,11 +31,14 @@ local Children = Fusion.Children
 
 local WHY = {
 	["blew up"] = "Blew up!", ["fell alone"] = "Fell off!", fell = "Fell off!", ["knocked off"] = "Knocked off!",
+	melted = "Melted!",
 }
 local HOW = {
 	ram = "With a ram", runover = "Ran you over", dive = "With a dive", shove = "With a shove",
 	pound = "With a ground pound", shockwave = "With a Shockwave", pass = "With a bomb pass",
 	blast = "With the blast", bomb = "With the bomb",
+	-- MELTDOWN: knocked into the lava by them
+	fireball = "Into the lava", debris = "Into the lava",
 }
 local SHOUT = "ELIMINATED!"
 -- layout units

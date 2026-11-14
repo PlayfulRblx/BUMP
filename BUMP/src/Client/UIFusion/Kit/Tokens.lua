@@ -78,6 +78,7 @@ Tokens.Colors = table.freeze({
 	-- Each minigame's own colour (from its arena's edges), on its intro's title.
 	GameBump = Color3.fromRGB(60, 226, 255),
 	GameBomber = Color3.fromRGB(255, 170, 60),
+	GameMeltdown = Color3.fromRGB(255, 78, 52),
 })
 
 -- A minigame's colour name ("GameBump"...); anything else is the accent.

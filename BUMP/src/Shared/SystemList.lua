@@ -32,6 +32,7 @@ return {
 		"@GameClient/Systems/RoundIntro",
 		"@GameClient/Systems/FallCam",
 		"@GameClient/Systems/KnockoutCam",
+		"@GameClient/Systems/MeltClient",
 		"@GameClient/Systems/StationClient",
 	},
 	-- RoundClient is not here: ClientMaster preloads it, ahead of the UI host.
