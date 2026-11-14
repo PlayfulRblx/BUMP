@@ -748,7 +748,7 @@ function rescue(participant)
 	character:SetAttribute(Ragdoll.Attribute, false)
 	character:SetAttribute(Remotes.MoveAttr, "Fall")
 	root.AssemblyLinearVelocity = Vector3.zero
-	character:PivotTo(CFrame.new(spot) * character:GetPivot().Rotation)
+	BumpServer.Teleport(character, CFrame.new(spot) * character:GetPivot().Rotation)
 	if participant.Player then
 		Remotes.You(participant.Player, "Rescue", { Position = spot })
 	end
@@ -810,7 +810,7 @@ function BomberGame.Place(ctx)
 			local character = ctx.Character(participant)
 			if character then
 				character:SetAttribute(Ragdoll.Attribute, false)
-				character:PivotTo(cframe)
+				BumpServer.Teleport(character, cframe)
 			end
 		end
 	end
@@ -844,7 +844,7 @@ function BomberGame.OnEliminated(ctx, participant)
 		elseif character and character.Parent then
 			character:SetAttribute(Ragdoll.Attribute, false)
 			character:SetAttribute(Remotes.MoveAttr, "Run")
-			character:PivotTo(stand)
+			BumpServer.Teleport(character, stand)
 		end
 	end
 	if blownAt and character then

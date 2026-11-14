@@ -9,6 +9,11 @@
 	  player is told by their own client ("Knock"), since that client moves their body; a dummy
 	  is thrown here. Everyone sees a pop.
 	- Three practice dummies stand in the yard to bump. One that goes far or falls is put back.
+	- Moves and flings bodies the engine's anti-cheat will let stand (BumpServer.Teleport,
+	  BumpServer.AllowFast): in a live server its anti-teleport check snaps a player back from any
+	  jump of 80+ studs in a second, server moves included (in Studio it only warns), so the games
+	  put players on the arena and they were snapped straight back to the plaza (the user,
+	  2026-11-14, in a live server: "I'm added to the games outside of the arena").
 ]]
 
 local CollectionService = game:GetService("CollectionService")
@@ -16,6 +21,7 @@ local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Workspace = game:GetService("Workspace")
 
+local AntiCheatHandlerServer = require("@Engine/Server/EngineSystems/AntiCheat/AntiCheatHandlerServer")
 local Remotes = require("@Shared/Movement/Remotes")
 local Tuning = require("@Shared/Movement/Tuning")
 local World = require("@Shared/World")
@@ -119,6 +125,7 @@ local function onBump(player: Player, target, kind)
 		-- a shove staggers them back on their feet
 		BumpServer.Shove(target, velocity)
 	elseif victim then
+		BumpServer.AllowFast(target, 2.5)
 		Remotes.You(victim, "Knock", { Velocity = velocity, Kind = kind })
 	elseif dummies[target] then
 		knockDummy(target, velocity)
@@ -203,6 +210,7 @@ end
 function BumpServer.Shove(model: Model, velocity: Vector3)
 	local player = Players:GetPlayerFromCharacter(model)
 	if player then
+		BumpServer.AllowFast(model, 1.5)
 		Remotes.You(player, "Knock", { Velocity = velocity, Kind = "Bump" })
 		return
 	end
@@ -249,11 +257,33 @@ function BumpServer.Shove(model: Model, velocity: Vector3)
 	end)
 end
 
+-- Lets a player's character move fast for `seconds` without the engine's anti-cheat (speed and
+-- teleport checks) snapping it back: a throw, a ride on a ball. 0 ends it (with the anti-cheat's
+-- own short grace after). Nothing for a bot, which the anti-cheat doesn't watch.
+function BumpServer.AllowFast(model: Model?, seconds: number)
+	if model and Players:GetPlayerFromCharacter(model) then
+		AntiCheatHandlerServer.logLastHighSpeedMovementForCharacter(model, nil, seconds)
+	end
+end
+
+-- Moves a body to `cframe`, telling the engine's anti-cheat it's the game's own move (it snaps
+-- players back from long moves otherwise; in a live server, not in Studio).
+function BumpServer.Teleport(model: Model?, cframe: CFrame)
+	if not model then
+		return
+	end
+	if Players:GetPlayerFromCharacter(model) then
+		AntiCheatHandlerServer.logLastHighSpeedMovementForCharacter(model, cframe, 1.5)
+	end
+	model:PivotTo(cframe)
+end
+
 -- Throws a participant's body: a player's own client is told (it moves its body), a server
 -- body (a bot, a dummy) is thrown here.
 function BumpServer.Throw(model: Model, velocity: Vector3)
 	local player = Players:GetPlayerFromCharacter(model)
 	if player then
+		BumpServer.AllowFast(model, 2.5)
 		Remotes.You(player, "Knock", { Velocity = velocity })
 		return
 	end

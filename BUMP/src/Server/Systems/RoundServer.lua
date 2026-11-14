@@ -30,6 +30,7 @@ local Friends = require("@GameServer/Rounds/Friends")
 local BotMind = require("@GameServer/Rounds/BotMind")
 local World = require("@Shared/World")
 local Spotlight = require("@GameServer/Rounds/Spotlight")
+local BumpServer = require("@GameServer/Systems/BumpServer")
 local HexArena = require("@GameServer/Rounds/HexArena")
 local PowerUps = require("@GameServer/Rounds/PowerUps")
 local PowerUpInfo = require("@Shared/PowerUps/PowerUpInfo")
@@ -214,7 +215,7 @@ local function endSession()
 		local character = player.Character
 		if character then
 			character:SetAttribute(Ragdoll.Attribute, false)
-			character:PivotTo(World.LobbySpot())
+			BumpServer.Teleport(character, World.LobbySpot())
 		end
 	end
 end
@@ -420,7 +421,7 @@ local function playGame(index: number, gameId: string)
 		if root and root.Position.Y < World.PlazaY - 1 and Vector3.new(root.Position.X, 0, root.Position.Z).Magnitude < World.PitRadius then
 			character:SetAttribute(Ragdoll.Attribute, false)
 			root.AssemblyLinearVelocity = Vector3.zero
-			character:PivotTo(World.LobbySpot())
+			BumpServer.Teleport(character, World.LobbySpot())
 		end
 	end
 	phase("Changeover")

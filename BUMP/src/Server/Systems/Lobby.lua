@@ -314,7 +314,7 @@ local function pad(at: Vector3, color: Color3, text: string, go: () -> CFrame)
 			return
 		end
 		last[player] = os.clock()
-		character:PivotTo(go())
+		BumpServer.Teleport(character, go())
 	end)
 end
 
@@ -374,7 +374,7 @@ local function portal(door, color: Color3, go: () -> CFrame)
 			return
 		end
 		last[player] = os.clock()
-		character:PivotTo(go())
+		BumpServer.Teleport(character, go())
 	end)
 end
 
@@ -385,7 +385,7 @@ local function putBack(character: Model, root: BasePart, why: string)
 	local inYard = (Vector3.new(root.Position.X, 0, root.Position.Z) - World.YardOrigin).Magnitude < 400
 	print(string.format("[Lobby] %s put back on the %s (%s)", character.Name, inYard and "yard" or "plaza", why))
 	root.AssemblyLinearVelocity = Vector3.zero
-	character:PivotTo(inYard and yardSpot() or World.LobbySpot())
+	BumpServer.Teleport(character, inYard and yardSpot() or World.LobbySpot())
 end
 
 -- Whether a player is still in a game (a game judges its own falls).

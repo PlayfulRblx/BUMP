@@ -572,6 +572,25 @@ server had me at -9), and BUMP and Bomber judged falls by it alone, at -36. Now:
 Measured in Play, walking off the edge: below the line 0.35 s after leaving it, out 0.06 s later,
 in both games; a run-over in BUMP knocked me out with the server still showing me at y -15.
 
+## Live servers and the engine's anti-cheat (2026-11-14)
+
+The user, in a live server: "it seems like I'm added to the games outside of the arena. My character
+even hits the intro pose whilst standing on the spawn location". The engine's `AntiTeleportServer`
+(engine code, left alone) snaps a player back to their last position after any move of 80+ studs
+in a second, server moves included; in Studio it only warns ("Teleport detected ... Not
+Rectifying") and then stops checking, which is why it never showed in testing. Its speed check
+(120 studs a second for 2.5 s) could catch ball dashes and big throws too; its fly and noclip
+checks are switched off.
+- Every server move of a body goes through `BumpServer.Teleport(model, cframe)`: it tells the
+  anti-cheat first (`AntiCheatHandlerServer.logLastHighSpeedMovementForCharacter`, the engine's own
+  knockback system's call). Placing on an arena, the stand, the plaza after a game, Second Chance,
+  the yard portals, the fall catch. **Never `character:PivotTo` a player on the server.**
+- `BumpServer.AllowFast(model, seconds)` while a player is thrown (`Throw` 2.5 s, `Shove` 1.5 s, a
+  claimed bump's knock 2.5 s) and for a whole ride on a ball (ended with a 2 s grace on dismount).
+- Seen in Studio: a whole game, knocked out, back to the plaza, onto the next arena, and no anti-cheat
+  warning (before this, one fired the moment the intro placed me). **Not seen:** a live server
+  itself, where the snapping happens; ball dashes there.
+
 ## Round intro (2026-11-13)
 
 The user: "Let's give each round a nice AAA ADHD nintendo level intro with title card and camera pan

@@ -266,6 +266,9 @@ local function mount(participant, ball: BasePart)
 	character:SetAttribute(BumpGame.WobbleAttr, 0)
 	if participant.Player then
 		ball:SetNetworkOwner(participant.Player)
+		-- a ball dashes at up to 100 studs a second: past the engine's anti-cheat speed and teleport
+		-- limits, which would snap the rider back in a live server
+		BumpServer.AllowFast(character, 1e6)
 	else
 		local root = rootOf(character)
 		local humanoid = character:FindFirstChildOfClass("Humanoid")
@@ -304,6 +307,9 @@ local function unmount(participant)
 		ball:SetNetworkOwner(nil)
 	end
 	local character = state.ctx.Character(participant)
+	if character and participant.Player then
+		BumpServer.AllowFast(character, 2) -- the ride's speed carries on a moment
+	end
 	if character and participant.Bot then
 		local root = rootOf(character)
 		for _, name in { "BumpRide", "BumpRideHold", "BumpRideUpright" } do
@@ -727,7 +733,7 @@ function rescue(participant)
 	character:SetAttribute(Ragdoll.Attribute, false)
 	character:SetAttribute(Remotes.MoveAttr, "Fall")
 	root.AssemblyLinearVelocity = Vector3.zero
-	character:PivotTo(CFrame.new(spot) * character:GetPivot().Rotation)
+	BumpServer.Teleport(character, CFrame.new(spot) * character:GetPivot().Rotation)
 	if participant.Player then
 		Remotes.You(participant.Player, "Rescue", { Position = spot })
 	end
@@ -788,7 +794,7 @@ function BumpGame.Place(ctx)
 			local character = ctx.Character(participant)
 			if character then
 				character:SetAttribute(Ragdoll.Attribute, false)
-				character:PivotTo(cframe)
+				BumpServer.Teleport(character, cframe)
 			end
 		end
 	end
@@ -816,7 +822,7 @@ function BumpGame.OnEliminated(ctx, participant)
 		task.delay(RoundInfo.KnockoutHold, function()
 			if character.Parent then
 				character:SetAttribute(Ragdoll.Attribute, false)
-				character:PivotTo(stand)
+				BumpServer.Teleport(character, stand)
 			end
 		end)
 	end
