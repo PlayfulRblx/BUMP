@@ -556,6 +556,22 @@ on platforms that are directly above each other".
 
 **Measured in Play (2026-11-14, one idle player, seven bots):** 40 of 40 seeds build, about 48 platforms, 4 pads, 1 chimney; games of 45 to 65 s with 2 to 4 surges, 9 to 18 fireballs, 3 to 7 debris; bots about a tier every 1 to 2 s; a lava touch to KnockedOut in 0.09 s; on a mover 0.00 studs of drift over 6 studs of travel; a pad throws you 27 studs up; no game errors. Captured: the tower from the plaza with the pit flooded. **Not seen:** the summit's last stand (bots knocked each other out before the lava got near the top), the new lava colour, a human climbing it, a phone; how it feels.
 
+## Falls that land on time (2026-11-14)
+
+The user: "Sometimes when I fall off the map, the feedback isn't as sudden as we'd expect it to be.
+It's like the killbox isn't under every part of the arena or something". It was the server's copy
+of a falling player's body, which lags or stops updating (measured: my client at y -26 while the
+server had me at -9), and BUMP and Bomber judged falls by it alone, at -36. Now:
+- `Client/Systems/FallCam` tells the server the moment your own body is below the game's fall line
+  (`Act "FellOut"`, at most every 0.5 s); `BumpGame` and `BomberGame` take it as it stands (a false
+  report could only knock its sender out) through the same path as their own check (Second Chance
+  first, blamed on a hit in the last 4 s). The server's own check stays as the backstop.
+- The fall line is 20 under the arena (`BumpArena.FallDepth`, `Bomber.FallDepth`, were 30).
+- MELTDOWN does the same with its lava (`Act "Melted"`, MeltClient).
+
+Measured in Play, walking off the edge: below the line 0.35 s after leaving it, out 0.06 s later,
+in both games; a run-over in BUMP knocked me out with the server still showing me at y -15.
+
 ## Round intro (2026-11-13)
 
 The user: "Let's give each round a nice AAA ADHD nintendo level intro with title card and camera pan
@@ -816,7 +832,7 @@ neon concept, asked to reuse AR's assets, and pasted AR's `Game | Main Folder` i
 | `Server/Rounds/Spotlight.lua` | A SpotLight 18 studs above each contestant's root, pointing down, warm white tinted by their seat colour; on from the intro, off when knocked out, survivors keep it through results. A visible beam cone was tried and turned down ("get rid of the cone spotlight. We just need the light itself") |
 | Baseplate and spawn | Project files: the baseplate is under the yard (0, -8, 1600), the spawn on the plaza (-132, 0.6, 0) |
 
-Both games play in the pit: arena tops at y -6, out below -36. Tiles are `Hex.BuildTile` with an
+Both games play in the pit: arena tops at y -6, out below -26 (was -36). Tiles are `Hex.BuildTile` with an
 `edge` colour: a thin plain (not Neon) outline round a slate top. The first neon tiles glowed so
 much that "It's hard for the players to see eachother". Seen in Play: the intro put everyone on the neon
 arena, the HUD and stores behind it; knocked-out players fell to -36 and were put on the plaza.

@@ -252,7 +252,7 @@ return {
 		Warn = 2.5, -- a cell shakes and flashes this long before it drops
 		KeepCells = 3, -- it stops dropping with this many left
 		TimeLimit = 120,
-		FallDepth = 30, -- this far below the platform and you're out
+		FallDepth = 20, -- this far below the platform and you're out (2026-11-14: was 30; falls felt late)
 	},
 
 	-- Knocked flat (Shared/Ragdoll, from The Scramble): each joint has a weak muscle pulling it
@@ -285,7 +285,7 @@ return {
 		BlastLift = 45,
 		TickSlow = 1.0, -- seconds between ticks with the fuse fresh
 		TickFast = 0.1, -- and at the very end
-		FallDepth = 30,
+		FallDepth = 20, -- (was 30: falls felt late)
 	},
 
 	-- ═══ MELTDOWN: climb away from the lava ══════════════════════════════════════════

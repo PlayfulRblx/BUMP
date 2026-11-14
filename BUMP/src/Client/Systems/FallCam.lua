@@ -11,6 +11,8 @@
 
 	- In a game: KnockoutCam hands a fall with nobody to blame here (FallCam.Play); the game moves
 	  your body to the stand after RoundInfo.KnockoutHold.
+	- In BUMP and Bomber it also tells the server the moment you drop below the fall line ("FellOut"),
+	  sooner than the server's own copy of a falling body shows it.
 	- Anywhere else (the lobby's pit, off the yard): this module notices your own body falling
 	  below FALL_Y, plays the same, and once it's black asks the server to put you back
 	  (Remotes "Fallen", Server/Systems/Lobby), as the server can't always see a falling body.
@@ -29,6 +31,8 @@ local CameraHandlerClient = require("@Engine/Client/EngineSystems/CameraHandler/
 local CameraState = require("@Engine/Client/EngineSystems/CameraHandler/Camera/CameraState")
 local Remotes = require("@Shared/Movement/Remotes")
 local RoundInfo = require("@Shared/Rounds/RoundInfo")
+local Tuning = require("@Shared/Movement/Tuning")
+local World = require("@Shared/World")
 
 local FallCam = {}
 
@@ -40,6 +44,9 @@ local BLACK_MIN, BLACK_MAX = 0.35, 3 -- held on black at least this, at most thi
 local OPEN = 0.5
 local LAND_Y = -20 -- back above this, you've been put somewhere solid
 local LAYER_PRIORITY = 46 -- over the knockout camera's (45), under the intro's (50)
+local REPORT_EVERY = 0.5 -- "FellOut" again at most this often while you're still down there
+-- How far under the arena's top each game's fall line is (MELTDOWN's is its lava: MeltClient).
+local FALL_LINES = { Bump = "BumpArena", Bomber = "Bomber" }
 
 local player = Players.LocalPlayer
 local running = false
@@ -225,15 +232,33 @@ local function inGame(): boolean
 	return false
 end
 
+-- In a game, the moment your own body drops below its fall line, tell the server ("FellOut"): its
+-- copy of a falling body can stop updating, so judging by that alone made falls feel late, as if
+-- there were no killbox under parts of the arena (the user, 2026-11-14).
+local reportedAt = 0
+local function reportFall(body: BasePart)
+	local round = ReplicatedStorage:FindFirstChild(RoundInfo.Folder)
+	local group = round and round:GetAttribute("Phase") == "Play" and FALL_LINES[round:GetAttribute("Minigame") or ""]
+	if not group then
+		return
+	end
+	local line = World.ArenaOrigin.Y - Tuning.Of(group).FallDepth
+	if body.Position.Y < line and os.clock() - reportedAt > REPORT_EVERY and inGame() then
+		reportedAt = os.clock()
+		Remotes.Act("FellOut")
+	end
+end
+
 function FallCam.start()
 	-- falls outside a game: the lobby's pit, off the yard
 	RunService.Heartbeat:Connect(function()
-		if running then
-			return
-		end
 		local body = root()
 		local character = player.Character
 		if not body or not character or character:GetAttribute(RoundInfo.KnockoutHoldAttr) then
+			return
+		end
+		reportFall(body)
+		if running then
 			return
 		end
 		if body.Position.Y < FALL_Y and body.AssemblyLinearVelocity.Y < FALL_SPEED and not inGame() then

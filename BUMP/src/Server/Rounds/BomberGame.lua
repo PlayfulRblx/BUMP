@@ -756,6 +756,34 @@ end
 
 -- ═══ the game ═════════════════════════════════════════════════════════════════════
 
+-- Fallen off, by whoever threw them if it was in the last few seconds.
+local function fallOut(participant)
+	if PowerUps.TryRescue(participant) then
+		return
+	end
+	local recent = os.clock() - (participant.LastHitAt or -100) < 4
+	state.ctx.Eliminate(participant, recent and "knocked off" or "fell", recent and participant.LastHitBy or nil, recent and participant.LastHitHow or nil)
+end
+
+-- A player's own client saw them drop below the fall line (Client/Systems/FallCam): sooner than
+-- the server's copy of a falling body, which can stop updating. Believed as it stands (all a
+-- false report could do is knock its own sender out).
+local function onFellOut(player: Player)
+	if not state then
+		return
+	end
+	for _, participant in state.ctx.Seats do
+		if participant.Player == player and not participant.Out then
+			fallOut(participant)
+			return
+		end
+	end
+end
+
+function BomberGame.Init()
+	BumpServer.OnAct("FellOut", onFellOut)
+end
+
 function BomberGame.Setup(ctx)
 	local arena = HexArena.new({ Origin = ORIGIN, Rings = Bomber.Rings, Tile = Bomber.Tile, Colors = RING_COLORS, Edges = RING_EDGES, Name = "BomberArena" })
 	state = { ctx = ctx, arena = arena, folder = arena.folder, bots = {}, blown = {}, bomb = nil }
@@ -891,11 +919,7 @@ function BomberGame.Run(ctx)
 			if not character or not character.Parent or not root then
 				ctx.Eliminate(participant, "no body")
 			elseif root.Position.Y < floor then
-				if not PowerUps.TryRescue(participant) then
-					-- thrown off in the last few seconds: by whoever threw them
-					local recent = os.clock() - (participant.LastHitAt or -100) < 4
-					ctx.Eliminate(participant, recent and "knocked off" or "fell", recent and participant.LastHitBy or nil, recent and participant.LastHitHow or nil)
-				end
+				fallOut(participant)
 			elseif participant.Bot then
 				botStep(participant, character)
 			end

@@ -735,7 +735,26 @@ end
 
 -- ═══ the game ═════════════════════════════════════════════════════════════════════
 
+-- A player's own client saw them drop below the fall line (Client/Systems/FallCam). The server's
+-- copy of a falling body can stop updating (seen frozen at y -35 while the client was far below),
+-- so waiting for it made a fall feel late, as if there were no killbox under parts of the arena.
+-- Believed as it stands: all a false report could do is knock its own sender out.
+local function onFellOut(player: Player)
+	if not state then
+		return
+	end
+	local participant = participantById(tostring(player.UserId))
+	if not participant or participant.Out then
+		return
+	end
+	unmount(participant)
+	if not PowerUps.TryRescue(participant) then
+		state.ctx.Eliminate(participant, fellWhy(participant))
+	end
+end
+
 function BumpGame.Init()
+	BumpServer.OnAct("FellOut", onFellOut)
 	BumpServer.OnAct("Mount", onMount)
 	BumpServer.OnAct("Pound", onPound)
 	BumpServer.OnAct("Dismount", onDismount)
