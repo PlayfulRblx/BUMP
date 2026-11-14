@@ -10,6 +10,30 @@
 ]]
 
 return {
-	Server = {},
-	Client = {},
+	Server = {
+		"@GameServer/Systems/Yard",
+		"@GameServer/Systems/Lobby",
+		"@GameServer/Systems/BumpServer",
+		"@GameServer/Systems/Progress",
+		"@GameServer/Systems/Stations",
+		"@GameServer/Systems/RoundServer",
+	},
+	Client = {
+		"@GameClient/Systems/Platformer",
+		"@GameClient/Systems/Animator",
+		"@GameClient/Systems/BumpFx",
+		"@GameClient/Systems/BallSounds",
+		"@GameClient/Systems/BallRider",
+		"@GameClient/Systems/BumpMusic",
+		"@GameClient/Systems/ArenaShow",
+		"@GameClient/Systems/PowerUpClient",
+		"@GameClient/Systems/PowerUpFx",
+		"@GameClient/Systems/PopFx",
+		"@GameClient/Systems/RoundIntro",
+		"@GameClient/Systems/FallCam",
+		"@GameClient/Systems/KnockoutCam",
+		"@GameClient/Systems/MeltClient",
+		"@GameClient/Systems/StationClient",
+	},
+	-- RoundClient is not here: ClientMaster preloads it, ahead of the UI host.
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE fcpxml>
+<fcpxml version="1.11">
+  <resources>
+    <format id="r1" name="FFVideoFormat2160p60" frameDuration="100/6000s" width="3840" height="2160" colorSpace="1-1-1 (Rec. 709)"/>
+    <asset id="r2" name="BUMP gameplay 2026-11-14" start="0s" duration="3382600/6000s" hasVideo="1" format="r1" hasAudio="1" audioSources="1" audioChannels="2" audioRate="48000">
+      <media-rep kind="original-media" src="file:///Users/jjackson/Desktop/2026-11-14%2010-57-34.mp4"/>
+    </asset>
+  </resources>
+  <library>
+    <event name="BUMP video">
+      <project name="BUMP: narrated gameplay">
+        <sequence format="r1" duration="1780500/6000s" tcStart="0s" tcFormat="NDF" audioLayout="stereo" audioRate="48k">
+          <spine>
+            <asset-clip ref="r2" name="BUMP gameplay" offset="0/6000s" start="60000/6000s" duration="1302000/6000s" format="r1" tcFormat="NDF">
+              <adjust-volume amount="-16dB"/>
+              <marker start="60000/6000s" duration="100/6000s" value="The lobby counts down; the BUMP card" note="Hi, I&#x27;m [your name], and this is BUMP, a party game I built for the Cinnamon trial. You arrive in a neon city hub with the arena sunk into the middle, and a session is six quick minigames back to back. Any empty seats are filled by bots."/>
+              <marker start="180000/6000s" duration="100/6000s" value="BUMP: riding, the dash, the hit, knocked off" note="The first game is BUMP. There&#x27;s one ball fewer than players: you ride a ball, charge a dash and roll everyone else off while the floor crumbles away. And... I&#x27;m out."/>
+              <marker start="276000/6000s" duration="100/6000s" value="Back on the plaza, walking the rim" note="Being knocked out isn&#x27;t dead time. You&#x27;re back on the rim, and the jumbotron keeps up with the round. I wanted a cartoony, Nintendo-ish feel with a minimal UI that stays out of the way. The bots wear your friends&#x27; avatars and names, so even a half-empty server feels like your mates are there."/>
+              <marker start="414000/6000s" duration="100/6000s" value="Bomber&#x27;s intro: the flyover, the hero pose, 3-2-1" note="Every game opens with a camera flight past the whole line-up that lands on you for a hero pose, then a three, two, one."/>
+              <marker start="480000/6000s" duration="100/6000s" value="Bomber Bloxians" note="Bomber Bloxians: pass an enormous ticking bomb by touching someone. The fuse is hidden, so the ticking speeds up instead, and every blast bites a crater out of the arena."/>
+              <marker start="564000/6000s" duration="100/6000s" value="Bomber, running and dodging" note="Movement is the part I cared about most. It&#x27;s a custom controller, a state machine for every move, with Roblox&#x27;s stock jump turned off. Jumps rise quickly and fall heavier than they rise, and you can steer in the air to get yourself out of trouble. I had a triple jump for a while, but it felt awful and didn&#x27;t fit, so it went. The shove started as a big lunge and became a short, snappy burst. Every movement number is live-tunable in Studio while you play, so it was tuned by feel rather than by guesswork."/>
+              <marker start="828000/6000s" duration="100/6000s" value="The last of Bomber; the shop opens" note="Placing earns gold and XP. Gold buys and upgrades power-ups: Shield, Turbo, Shockwave and Second Chance. Your level from XP unlocks the higher upgrades. That&#x27;s the reason to come back: a short competitive session that also moves your character forward."/>
+              <marker start="960000/6000s" duration="100/6000s" value="MELTDOWN: the card, the climb, melted" note="The third game is Meltdown. Lava rises up a tower of floating platforms: crumbling ledges, moving platforms, bounce pads and wall-jump chimneys, with fireballs, surges and falling debris on the way up. The tiers are spaced so you need your float jump, and a ground pound shakes everyone off your platform. And there I go."/>
+              <marker start="1152000/6000s" duration="100/6000s" value="The lava tower from above" note="On the technical side, systems are plain modules registered in a load-order list, the same pattern as my own framework. Movement, effects and anything that needs instant feedback run on the client so it feels immediate, with checks on the server to keep the responses valid. The UI kit was built in UI Labs first, from modular components and design tokens, so every screen stays consistent. And problems were tracked down by measuring rather than guessing."/>
+            </asset-clip>
+            <asset-clip ref="r2" name="BUMP gameplay" offset="1302000/6000s" start="2748000/6000s" duration="408000/6000s" format="r1" tcFormat="NDF">
+              <adjust-volume amount="-16dB"/>
+              <marker start="2748000/6000s" duration="100/6000s" value="Final standings; the next lobby; the hero intro; BUMP" note="After six games you get the final standings, and it&#x27;s straight into the next session. On AI and assets: Claude Code wrote a lot of the Luau from my direction, one feature at a time. I set the structure and the programming style, then reviewed it, staged it and sent it back. I made the simple assets in Blender, and used Nano Banana image models to expand on inspirations. The lobby is reworked from an unfinished project of mine from a couple of years ago. Animation is my weak spot: I know the feeling I&#x27;m after, and that&#x27;s where I&#x27;d lean on great animators."/>
+              <marker start="3060000/6000s" duration="100/6000s" value="Run over; the camera swings to who did it; results" note="When you&#x27;re knocked out, the camera follows you down, then swings round to whoever did it. Egzekiel, there, running me over."/>
+              <marker start="3132000/6000s" duration="100/6000s" value="Results; Bomber; the bomb pops" note="I&#x27;ve got more ideas in the same spirit: Silly Billies, The Scramble, Steal The Sky and Build a Boss. But that&#x27;s BUMP: quick to pick up, easy to come back to, and built to grow. Thanks for watching."/>
+            </asset-clip>
+            <asset-clip ref="r2" name="BUMP gameplay" offset="1710000/6000s" start="3312000/6000s" duration="70500/6000s" format="r1" tcFormat="NDF">
+              <adjust-volume amount="-16dB"/>
+            </asset-clip>
+          </spine>
+        </sequence>
+      </project>
+    </event>
+  </library>
+</fcpxml>
