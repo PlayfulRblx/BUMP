@@ -27,6 +27,7 @@ local Workspace = game:GetService("Workspace")
 
 local CameraHandlerClient = require("@Engine/Client/EngineSystems/CameraHandler/CameraHandlerClient")
 local CameraState = require("@Engine/Client/EngineSystems/CameraHandler/Camera/CameraState")
+local FallCam = require("@Client/Systems/FallCam")
 local RoundClient = require("@Client/Systems/RoundClient")
 local RoundInfo = require("@Shared/Rounds/RoundInfo")
 local World = require("@Shared/World")
@@ -89,6 +90,13 @@ end
 
 local function begin(data)
 	stop()
+	data = data or {}
+	-- a fall nobody caused: the Mario-style fall instead (FallCam); blown up or knocked off by
+	-- someone, this camera shows it
+	if not data.By and data.Reason ~= "blew up" and data.Reason ~= "no body" then
+		FallCam.Play(false)
+		return
+	end
 	local service = CameraHandlerClient.getService()
 	local character = player.Character
 	local root = character and character:FindFirstChild("HumanoidRootPart")
@@ -97,7 +105,6 @@ local function begin(data)
 	end
 	serial += 1
 	local mine = serial
-	data = data or {}
 	local start = root.Position
 	local follow = start
 	local killer = modelFor(data.ById)

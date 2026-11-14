@@ -27,6 +27,7 @@ local Workspace = game:GetService("Workspace")
 local RoundInfo = require("@Shared/Rounds/RoundInfo")
 local World = require("@Shared/World")
 local Neon = require("@GameServer/Lobby/Neon")
+local BumpServer = require("@GameServer/Systems/BumpServer")
 
 local Lobby = {}
 
@@ -35,6 +36,7 @@ local CYCLE = Neon.Cycle
 local SPARKLE = Neon.Sparkle
 local JUMBO_Y = 78
 local CATCH_Y = -45 -- below this (and not in a game) you're put back
+local CATCH_AFTER = 3 -- seconds down there first: your own client asks sooner, once its fall has played
 
 local fx: Folder = nil
 local screens = {} -- { TextLabel } on the jumbotron, in face order
@@ -277,7 +279,7 @@ local function pad(at: Vector3, color: Color3, text: string, go: () -> CFrame)
 	local label = Instance.new("TextLabel")
 	label.Size = UDim2.fromScale(1, 1)
 	label.BackgroundTransparency = 1
-	label.Font = FONT
+	label.Font = Neon.Font
 	label.Text = text
 	label.TextScaled = true
 	label.TextColor3 = color
@@ -371,9 +373,53 @@ end
 
 -- ═══ catching falls ══════════════════════════════════════════════════════════════
 
-local function catchFalls()
-	-- a game judges its own falls first (out below the arena's FallDepth, well above CATCH_Y,
-	-- and moved to the plaza), so anyone this low is a stray
+-- Back onto solid ground: the yard if that's where you fell, else the plaza.
+local function putBack(character: Model, root: BasePart, why: string)
+	local inYard = (Vector3.new(root.Position.X, 0, root.Position.Z) - World.YardOrigin).Magnitude < 400
+	print(string.format("[Lobby] %s put back on the %s (%s)", character.Name, inYard and "yard" or "plaza", why))
+	root.AssemblyLinearVelocity = Vector3.zero
+	character:PivotTo(inYard and yardSpot() or World.LobbySpot())
+end
+
+-- Whether a player is still in a game (a game judges its own falls).
+local function inGame(player: Player, round: Instance): boolean
+	local phase = round:GetAttribute("Phase")
+	if phase ~= "Play" and phase ~= "Intro" then
+		return false
+	end
+	local ok, list = pcall(HttpService.JSONDecode, HttpService, round:GetAttribute("Players") or "[]")
+	if not ok or type(list) ~= "table" then
+		return false
+	end
+	for _, entry in list do
+		if type(entry) == "table" and entry.UserId == player.UserId then
+			return not entry.Out
+		end
+	end
+	return false
+end
+
+local function catchFalls(round: Instance)
+	-- The player's own client plays the fall (Client/Systems/FallCam: the camera stops, an iris
+	-- closes) and, once the screen is black, asks to be put back ("Fallen"). A falling body can
+	-- stop updating here, so that request is the main way back; this loop is the backstop, for
+	-- anyone this low for longer than the fall takes.
+	-- Taken at its word: the server's copy of a falling body is often stuck where the fall began
+	-- (seen 2026-11-14: still on the stand while the client was 300 studs down), and outside a
+	-- game being put on the plaza is harmless. At most once every 2 s.
+	local lastFallen = {}
+	BumpServer.OnAct("Fallen", function(player: Player)
+		local character = player.Character
+		local root = character and character:FindFirstChild("HumanoidRootPart")
+		if not root or os.clock() - (lastFallen[player] or -10) < 2 then
+			return
+		end
+		if not inGame(player, round) and not character:GetAttribute(RoundInfo.KnockoutHoldAttr) then
+			lastFallen[player] = os.clock()
+			putBack(character, root, "asked")
+		end
+	end)
+	local lowSince = {}
 	while true do
 		task.wait(0.3)
 		for _, player in Players:GetPlayers() do
@@ -381,9 +427,13 @@ local function catchFalls()
 			local root = character and character:FindFirstChild("HumanoidRootPart")
 			-- (not someone just knocked out, whose camera is watching them fall: KnockoutCam)
 			if root and root.Position.Y < CATCH_Y and not character:GetAttribute(RoundInfo.KnockoutHoldAttr) then
-				local inYard = (Vector3.new(root.Position.X, 0, root.Position.Z) - World.YardOrigin).Magnitude < 400
-				root.AssemblyLinearVelocity = Vector3.zero
-				character:PivotTo(inYard and yardSpot() or World.LobbySpot())
+				lowSince[player] = lowSince[player] or os.clock()
+				if os.clock() - lowSince[player] > CATCH_AFTER then
+					lowSince[player] = nil
+					putBack(character, root, "caught")
+				end
+			else
+				lowSince[player] = nil
 			end
 		end
 	end
@@ -407,7 +457,7 @@ function Lobby.start()
 	pad(World.YardOrigin + Vector3.new(14, 0.3, -14), NEON.Cyan, "BACK TO LOBBY", World.LobbySpot)
 
 	local round = ReplicatedStorage:WaitForChild(RoundInfo.Folder)
-	task.spawn(catchFalls)
+	task.spawn(catchFalls, round)
 	task.spawn(function()
 		local rng = Random.new()
 		while true do

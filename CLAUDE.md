@@ -585,6 +585,27 @@ the shot shows you going down, then who did it.
   (captures lag). **Not heard:**
   the sounds were picked by their catalogue descriptions (whether the slide whistle falls or rises
   is unknown).
+- **Falling under the map, Mario style** (the user: "When falling under the map, we should have a
+  mario style camera follow disappearing into the screen turning black"; their choices: everywhere,
+  an iris, and in a game only when nobody knocked you off). `Client/Systems/FallCam.lua`: the camera
+  stops where it is and turns after you for 0.45 s, you drop away at full speed, an iris (a round
+  frame with a huge black UIStroke, no image; DisplayOrder -10 so the HUD stays over it) closes on
+  where you are on screen from 0.35 s over 0.75 s, the body is held still (anchored on your client)
+  so it can't reach the kill plane at -500, it stays black until you're back above y -20 (0.35 s at
+  least, 3 s at most), then opens from the middle. In a game, KnockoutCam hands it any knockout with
+  no `By` (not "blew up"); the game moves you to the stand. Outside a game (the lobby's pit, off the
+  yard: below y -40 and dropping, not a live contestant) FallCam plays it itself and, once black,
+  sends Act "Fallen"; `Lobby` puts you on the plaza or the yard at its word (the server's copy of a
+  falling body can be stuck where the fall began), at most once every 2 s, printing `[Lobby] X put
+  back on the plaza (asked)`; its own catch below -45 now waits 3 s as a backstop. Measured: black at
+  1.5 to 1.7 s, back on solid ground within 0.05 s of asking, open by 2.4 to 2.6 s, no respawns. Not
+  seen in a capture.
+- **Found on the way:** the whole Lobby system had been failing to load since the lobby was split
+  into `Server/Lobby/Neon.lua` ("61 of 62" systems in the log: `pad()` set `label.Font = FONT`,
+  never defined), so everything after the pads never ran: the fall catch, the door screens' live
+  text, the confetti and fireworks. Fixed (`Neon.Font`); 62 of 62 load. The engine records a failed
+  system as `ServerScriptService["[SOME SYSTEMS FAILED TO LOAD (n)] ServerMasterLoaderConfig"]`
+  with an `ErrorMessage` attribute: check it whenever the log says fewer than all loaded.
 - **Everyone else's:** `You "Eliminated"` to the other players (RoundClient emits `Eliminated`);
   `HudFeed` (`Layout.Feed`, top left; top right on a phone) lists "MOCHI eliminated FIZZ" or "FIZZ
   fell off / blew up", names in seat colours, four at most, each 4.5 s.

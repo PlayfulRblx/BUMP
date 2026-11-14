@@ -30,6 +30,7 @@ return {
 		"@GameClient/Systems/PowerUpFx",
 		"@GameClient/Systems/PopFx",
 		"@GameClient/Systems/RoundIntro",
+		"@GameClient/Systems/FallCam",
 		"@GameClient/Systems/KnockoutCam",
 		"@GameClient/Systems/StationClient",
 	},
