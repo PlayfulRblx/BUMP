@@ -585,6 +585,12 @@ checks are switched off.
   anti-cheat first (`AntiCheatHandlerServer.logLastHighSpeedMovementForCharacter`, the engine's own
   knockback system's call). Placing on an arena, the stand, the plaza after a game, Second Chance,
   the yard portals, the fall catch. **Never `character:PivotTo` a player on the server.**
+- `BumpServer.Teleport` also tells the player's client `You "Placed" { CFrame }`; Platformer turns
+  them to face that way (its own `facing`, which would otherwise turn the body straight back) and,
+  once the body has arrived, swings the camera behind them (Roblox's default camera turns from its
+  current look, so one write holds). Every game placement faces the stage, the plaza spot faces the
+  pit (the user, 2026-11-14: "their character and camera should be facing towards the direction of
+  the stage"). **Not yet seen in Play** (the test run was stopped).
 - `BumpServer.AllowFast(model, seconds)` while a player is thrown (`Throw` 2.5 s, `Shove` 1.5 s, a
   claimed bump's knock 2.5 s) and for a whole ride on a ball (ended with a 2 s grace on dismount).
 - Seen in Studio: a whole game, knocked out, back to the plaza, onto the next arena, and no anti-cheat

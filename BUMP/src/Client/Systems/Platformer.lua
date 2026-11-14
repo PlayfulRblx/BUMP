@@ -108,6 +108,7 @@ local external = nil
 local standing = true -- false while knocked flat (ragdoll): the movers are off
 local poseFor = 0 -- how long the Hero pose (Platformer.Pose) holds
 local carried = { model = nil, at = Vector3.zero } -- the moving platform under you, and where it was
+local onPlaced -- further down
 
 -- While the round says so (a game's intro), nobody moves.
 local function frozen(): boolean
@@ -972,6 +973,46 @@ local function step(dt: number)
 	body.aligner.CFrame = CFrame.lookAt(Vector3.zero, facing)
 end
 
+-- ═══ placed by the game ═══════════════════════════════════════════════════════════
+
+-- The server moved you (onto a game's arena, back to the plaza: BumpServer.Teleport) facing
+-- `cframe`'s way, usually the stage. Your facing is this controller's own (it would turn you
+-- straight back), and the camera turns from wherever it last looked, so both are turned here:
+-- you face that way and the camera swings round behind you (the user, 2026-11-14: "when players
+-- spawn into each round, their character and camera should be facing towards the direction of
+-- the stage"). Roblox's default camera turns from its current look, so setting it once holds.
+local CAMERA_BACK, CAMERA_UP = 14, 5
+function onPlaced(cframe: CFrame)
+	local look = flat(cframe.LookVector)
+	if look.Magnitude < 0.1 then
+		return
+	end
+	look = look.Unit
+	facing = look
+	if body then
+		body.aligner.CFrame = CFrame.lookAt(Vector3.zero, look)
+	end
+	-- once the body has arrived (the move replicates a moment after this message)
+	task.spawn(function()
+		local waitedUntil = os.clock() + 1
+		while os.clock() < waitedUntil do
+			local root = body and body.root
+			if root and (root.Position - cframe.Position).Magnitude < 8 then
+				break
+			end
+			task.wait()
+		end
+		local root = body and body.root
+		local camera = Workspace.CurrentCamera
+		if not root or not camera then
+			return
+		end
+		facing = look
+		local at = root.Position + Vector3.new(0, 2, 0)
+		camera.CFrame = CFrame.lookAt(at - look * CAMERA_BACK + Vector3.new(0, CAMERA_UP, 0), at)
+	end)
+end
+
 -- ═══ input ════════════════════════════════════════════════════════════════════════
 
 -- Bound through the engine's InputHandler, so each button gets the engine's input chip (the key
@@ -1169,6 +1210,8 @@ function Platformer.start()
 	Remotes.HookYou(function(name, data)
 		if name == "Knock" and data and typeof(data.Velocity) == "Vector3" then
 			onKnocked(data.Velocity, data.Kind)
+		elseif name == "Placed" and data and typeof(data.CFrame) == "CFrame" then
+			onPlaced(data.CFrame)
 		end
 	end)
 	player.CharacterAdded:Connect(function(character)

@@ -272,10 +272,15 @@ function BumpServer.Teleport(model: Model?, cframe: CFrame)
 	if not model then
 		return
 	end
-	if Players:GetPlayerFromCharacter(model) then
+	local player = Players:GetPlayerFromCharacter(model)
+	if player then
 		AntiCheatHandlerServer.logLastHighSpeedMovementForCharacter(model, cframe, 1.5)
 	end
 	model:PivotTo(cframe)
+	if player then
+		-- their own client turns them (and their camera) to face this way (Platformer)
+		Remotes.You(player, "Placed", { CFrame = cframe })
+	end
 end
 
 -- Throws a participant's body: a player's own client is told (it moves its body), a server
