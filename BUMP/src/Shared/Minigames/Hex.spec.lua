@@ -48,6 +48,16 @@ describe("Hex", function()
 		end
 	end)
 
+	it("names a tile the same from just either side of zero (no \"-0\")", function()
+		local R = 7
+		local q1, r1 = Hex.FromPosition(-0.3, 0.2, R)
+		local q2, r2 = Hex.FromPosition(0.3, -0.2, R)
+		expect(Hex.Key(q1, r1)).toBe("0,0")
+		expect(Hex.Key(q2, r2)).toBe("0,0")
+		local q3, r3 = Hex.FromPosition(-0.2, 36, R)
+		expect(Hex.Key(q3, r3)).toBe(Hex.Key(0, 3))
+	end)
+
 	it("keys tiles uniquely", function()
 		local keys = {}
 		for _, tile in Hex.Tiles(7) do

@@ -55,8 +55,11 @@ function Hex.Neighbours(q: number, r: number): { { number } }
 	return list
 end
 
+-- A tile's name. Negative zero is written "0": a point just left of a column rounds to -0, which
+-- Luau prints as "-0", so it named no tile and bots stood on solid floor believing it gone (found
+-- 2026-11-14: Bomber's bots stood still 65% of the time, most of them in the x = 0 column).
 function Hex.Key(q: number, r: number): string
-	return q .. "," .. r
+	return (q == 0 and 0 or q) .. "," .. (r == 0 and 0 or r)
 end
 
 -- How far a ring's outer edge reaches from the centre (the flat side, the near edge).

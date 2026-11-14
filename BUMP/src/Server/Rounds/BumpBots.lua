@@ -123,39 +123,46 @@ local function botPowerUp(participant, position: Vector3, turbo: boolean, wobbli
 end
 
 -- Who a riding bot goes for, by its personality: close ones, ones near an edge or wobbling
--- (finish them off), players (bullies), anyone on foot (run them over); a little stickiness so
--- it doesn't flit between targets, and some chance. Nil if nobody's worth it (a coward waits).
+-- (finish them off), players (bullies), anyone on foot (run them over). BotMind.PickTarget re-weighs
+-- it at every decision as people move, with each bot's whims, a reluctance to flit between
+-- targets, and giving up on one it can't catch. Nil if nobody's worth it yet (the timid patrol and
+-- wait for a chance); everyone hunts once it's down to a few.
 local function chooseTarget(participant, brain, mind, position: Vector3)
-	local best, bestScore = nil, -math.huge
+	local others = {}
 	for _, other in state.ctx.Alive() do
 		if other ~= participant then
-			local model = state.ctx.Character(other)
-			local root = rootOf(model)
-			local ball = state.riding[other.Id]
-			local at = ball and ball.Parent and ball.Position or root and root.Position
-			if at and not PowerUps.Shielded(model) then
-				local distance = flat(at - position).Magnitude
-				if distance < 90 then
-					local holeDistance = BotMind.HoleDistance(state.arena, at, 20, 4)
-					local edgeness = 1 - math.clamp(holeDistance / 20, 0, 1)
-					local wobbling = (model:GetAttribute(WOBBLE_ATTR) or 0) > now()
-					local score = -distance / 25
-						+ mind.EdgeBias * edgeness * 1.5
-						+ (wobbling and mind.WobbleBias or 0)
-						+ (other.Player and mind.HumanBias or 0)
-						+ (ball and 0 or 0.4)
-						+ (other == brain.target and 0.6 or 0)
-						+ math.random() * mind.Random
-					if score > bestScore then
-						best, bestScore = other, score
-					end
-				end
-			end
+			table.insert(others, other)
 		end
 	end
-	-- the timid wait for a good chance; everyone hunts once it's down to a few
+	local function where(other)
+		local model = state.ctx.Character(other)
+		local root = rootOf(model)
+		local ball = state.riding[other.Id]
+		return model, ball and ball.Parent and ball.Position or root and root.Position, ball
+	end
+	local best, bestScore = BotMind.PickTarget(brain, mind, others, function(other)
+		local model, at, ball = where(other)
+		if not at or PowerUps.Shielded(model) then
+			return nil
+		end
+		local distance = flat(at - position).Magnitude
+		if distance > 90 then
+			return nil
+		end
+		local holeDistance = BotMind.HoleDistance(state.arena, at, 20, 4)
+		local edgeness = 1 - math.clamp(holeDistance / 20, 0, 1)
+		local wobbling = (model:GetAttribute(WOBBLE_ATTR) or 0) > now()
+		return -distance / 30
+			+ mind.EdgeBias * edgeness * 1.5
+			+ (wobbling and mind.WobbleBias or 0)
+			+ (other.Player and mind.HumanBias or 0)
+			+ (ball and 0 or 0.4)
+	end, function(other)
+		local _, at = where(other)
+		return at and flat(at - position).Magnitude or nil
+	end)
 	local fewLeft = #state.ctx.Alive() <= 3
-	if best and not fewLeft and bestScore < 1.2 - mind.Aggro * 2 then
+	if best and not fewLeft and bestScore < 1.6 - mind.Aggro * 2 then
 		return nil
 	end
 	return best
@@ -262,10 +269,12 @@ function BumpBots.OnFoot(participant, brain, character: Model, dt: number)
 		return
 	end
 
-	-- nothing to do: keep to safe floor near the middle
-	if (brain.wanderAt or 0) < os.clock() then
-		brain.wanderAt = os.clock() + 1.5
-		humanoid:MoveTo(safeSpot(ORIGIN + Hex.Position(math.random(-2, 2), math.random(-2, 2), Arena.Tile)))
+	-- nothing to do: keep moving over safe floor near the middle, the next spot picked on arrival
+	local goal = brain.wanderGoal
+	if not goal or flat(goal - position).Magnitude < 4 or (brain.wanderAt or 0) < os.clock() then
+		brain.wanderAt = os.clock() + 4
+		brain.wanderGoal = safeSpot(ORIGIN + Hex.Position(math.random(-3, 3), math.random(-3, 3), Arena.Tile))
+		humanoid:MoveTo(brain.wanderGoal)
 	end
 	local _ = dt
 end
@@ -315,6 +324,10 @@ function BumpBots.Riding(participant, brain, character: Model, ball: BasePart, d
 	if danger then
 		mode = "Recover"
 		local toSafe = flat(safeSpot(position) - position)
+		if toSafe.Magnitude < 0.5 then
+			-- the nearest safe spot is right here (the cell is going): head for safe floor inward
+			toSafe = flat(safeSpot(ORIGIN) - position)
+		end
 		toSafe = toSafe.Magnitude > 0.5 and toSafe.Unit or (heading and -heading or Vector3.zero)
 		if heading and speed > 6 and heading:Dot(toSafe) < 0.3 then
 			input = -heading -- pull back hard: a skrrt
@@ -377,13 +390,25 @@ function BumpBots.Riding(participant, brain, character: Model, ball: BasePart, d
 			input = aim.Magnitude > 0.1 and BotMind.Wobble(aim.Unit, mind) or Vector3.zero
 		end
 	else
-		-- waiting for a chance: drift round near the middle, never still
-		if not brain.idleSpot or (brain.idleAt or 0) < nowClock then
-			brain.idleAt = nowClock + 1.2 + math.random() * 1.5
-			brain.idleSpot = safeSpot(ORIGIN + Hex.Position(math.random(-2, 2), math.random(-2, 2), Arena.Tile))
+		-- nobody worth it yet: patrol round the arena, never parked (they used to drift to a spot
+		-- near the middle and stop: measured, riders still for 3 to 5 s). A loop of points round the
+		-- middle at a distance that suits the bot (the careful nearer the middle), each picked as
+		-- the last is reached, and the way round turning now and then
+		mode = "Patrol"
+		local radius = Arena.Tile * (2.5 + (1 - mind.Caution) * 3)
+		if not brain.patrolSpot or flat(brain.patrolSpot - position).Magnitude < 8 or (brain.patrolAt or 0) < nowClock then
+			brain.patrolTurn = brain.patrolTurn or (math.random() < 0.5 and 1 or -1)
+			if math.random() < 0.15 then
+				brain.patrolTurn = -brain.patrolTurn
+			end
+			local fromMiddle = flat(position - ORIGIN)
+			local angle = math.atan2(fromMiddle.Z, fromMiddle.X) + brain.patrolTurn * (0.7 + math.random() * 0.6)
+			local spot = ORIGIN + Vector3.new(math.cos(angle), 0, math.sin(angle)) * radius * (0.8 + math.random() * 0.4)
+			brain.patrolSpot = floorAt(spot) and spot or safeSpot(spot)
+			brain.patrolAt = nowClock + 4
 		end
-		local toSpot = flat(brain.idleSpot - position)
-		input = toSpot.Magnitude > 3 and toSpot.Unit or Vector3.zero
+		local toSpot = flat(brain.patrolSpot - position)
+		input = toSpot.Magnitude > 0.5 and toSpot.Unit * (0.6 + 0.4 * mind.Aggro) or Vector3.zero
 	end
 	-- a margin from the edge, more for the careful (not while recovering or making the hit)
 	if mode ~= "Recover" and mode ~= "Hunt" and holeDirection and holeDistance < 9 then

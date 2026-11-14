@@ -237,6 +237,9 @@ local function pass(to, from, push: Vector3)
 	local bomb = state.bomb
 	holdBomb(to)
 	bomb.from = from -- if it goes off on them, this is who did it
+	-- a bot that's just been handed it doesn't go straight back for whoever handed it over (the
+	-- user: "when passing the bomb to an AI, they seem to run back after me as the closest target")
+	bomb.passBackAt = now() + 3.5 + math.random() * 2.5
 	bomb.immuneUntil = now() + Bomber.PassImmunity
 	state.folder:SetAttribute("Passes", (state.folder:GetAttribute("Passes") or 0) + 1)
 	local toRoot = rootOf(state.ctx.Character(to))
@@ -425,26 +428,47 @@ local function botHolding(participant, brain, root: BasePart, humanoid: Humanoid
 		end
 	end
 	local hurry = urgency()
-	-- who to give it to, by personality: close, cornered against an edge, players for a bully
+	-- who to give it to: re-weighed at each decision as people move (BotMind.PickTarget adds the
+	-- whims, the stickiness and giving up on a chase that isn't closing). Close counts, but less
+	-- than it did; cornered against an edge, players for a bully, someone easy to catch (coming
+	-- this way or standing about); never straight back to whoever just passed it, unless they're
+	-- the only one left
 	if BotMind.Think(brain, mind) or not brain.target or brain.target.Out then
-		local best, bestScore = nil, -math.huge
+		local others = {}
 		for _, other in state.ctx.Alive() do
-			local model = other ~= participant and state.ctx.Character(other)
-			local theirs = model and rootOf(model)
-			if theirs and not PowerUps.Shielded(model) then
-				local distance = flat(theirs.Position - root.Position).Magnitude
-				local holeDistance = BotMind.HoleDistance(state.arena, theirs.Position, 16, 4)
-				local score = -distance / 20
-					+ (1 - holeDistance / 16) * 1.2 * mind.EdgeBias
-					+ (other.Player and mind.HumanBias or 0)
-					+ (other == brain.target and 0.5 or 0)
-					+ math.random() * mind.Random
-				if score > bestScore then
-					best, bestScore = other, score
-				end
+			if other ~= participant then
+				table.insert(others, other)
 			end
 		end
-		brain.target = best
+		local passer = state.bomb.from
+		local blockPasser = passer and now() < (state.bomb.passBackAt or 0) and #others > 1
+		local function where(other)
+			local model = state.ctx.Character(other)
+			return model, rootOf(model)
+		end
+		brain.target = BotMind.PickTarget(brain, mind, others, function(other)
+			if blockPasser and other == passer then
+				return nil
+			end
+			local model, theirs = where(other)
+			if not theirs or PowerUps.Shielded(model) then
+				return nil
+			end
+			local offset = flat(theirs.Position - root.Position)
+			local distance = offset.Magnitude
+			local holeDistance = BotMind.HoleDistance(state.arena, theirs.Position, 16, 4)
+			local theirVelocity = flat(theirs.AssemblyLinearVelocity)
+			local coming = distance > 0.1 and theirVelocity:Dot(-offset.Unit) or 0
+			local easy = (theirVelocity.Magnitude < 4 and 0.4 or 0) + math.clamp(coming / 16, 0, 0.6)
+			return -distance / 28
+				+ (1 - holeDistance / 16) * 1.2 * mind.EdgeBias
+				+ (other.Player and mind.HumanBias or 0)
+				+ easy * mind.Skill
+				+ (clearPath(root.Position, theirs.Position) and 0.3 or 0)
+		end, function(other)
+			local _, theirs = where(other)
+			return theirs and flat(theirs.Position - root.Position).Magnitude or nil
+		end)
 	end
 	local target = brain.target
 	local theirs = target and rootOf(state.ctx.Character(target))
@@ -505,43 +529,106 @@ local function botFleeing(participant, brain, root: BasePart, humanoid: Humanoid
 			end
 		end
 	end
-	if (brain.jukeUntil or 0) > os.clock() or not BotMind.Think(brain, mind) then
+	if (brain.jukeUntil or 0) > os.clock() then
 		return
 	end
+	-- Never standing about (the user, 2026-11-14: "moments where they're all just standing still
+	-- for no reason"; measured, 65% of the time in Bomber): a bot always has somewhere it's going,
+	-- and picks the next place as it gets there, not on a timer.
+	local function arrived(goal: Vector3?): boolean
+		return goal == nil or flat(goal - position).Magnitude < 4
+	end
+	local function roam(near: Vector3, minimum: number, maximum: number, away: Vector3?)
+		-- a safe cell between `minimum` and `maximum` studs from `near`, not toward `away`
+		local cells = state.arena:SolidCells()
+		for _ = 1, #cells > 0 and 12 or 0 do
+			local cell = cells[math.random(#cells)]
+			if cell and not state.arena:IsEdge(cell) then
+				local centre = cell.model:GetPivot().Position
+				local fromNear = flat(centre - near).Magnitude
+				local toward = flat(centre - position)
+				local bad = away and toward.Magnitude > 0.1 and flat(away - position).Magnitude > 0.1
+					and toward.Unit:Dot(flat(away - position).Unit) > 0.5
+				if fromNear >= minimum and fromNear <= maximum and not bad and clearPath(position, centre) then
+					return centre
+				end
+			end
+		end
+		return state.arena:SafeSpot(position + Vector3.new(math.random(-14, 14), 0, math.random(-14, 14)))
+	end
+	local function go(goal: Vector3)
+		brain.goal = goal
+		humanoid:MoveTo(goal)
+	end
+	local thinking = BotMind.Think(brain, mind)
 	if not holderRoot then
-		-- no bomb out: spread out over safe floor toward the middle
-		local spot = state.arena:SafeSpot(ORIGIN + Hex.Position(math.random(-2, 2), math.random(-2, 2), Bomber.Tile))
-		humanoid:MoveTo(spot)
+		-- no bomb out: wander the floor, spread out
+		if arrived(brain.goal) or (thinking and math.random() < 0.05) then
+			go(roam(ORIGIN, 0, 40))
+		elseif thinking then
+			humanoid:MoveTo(brain.goal) -- MoveTo gives up after a while; keep it going
+		end
+		return
+	end
+	if not thinking and not arrived(brain.goal) then
 		return
 	end
 	local hurry = urgency()
 	local danger = flat(position - holderRoot.Position).Magnitude
-	-- how far away is far enough: further as the ticking quickens, further for the careful
-	local want = Bomber.PassReach + 10 + hurry * (Bomber.BlastRadius + 4) * (0.6 + mind.Caution * 0.4)
-	if danger > want + 10 then
-		-- far enough: amble about on safe floor rather than freeze
-		if (brain.wanderAt or 0) < os.clock() then
-			brain.wanderAt = os.clock() + 1.5 + math.random()
-			humanoid:MoveTo(state.arena:SafeSpot(position + Vector3.new(math.random(-12, 12), 0, math.random(-12, 12))))
+	-- is the holder after me? (a bot holder says; a player, by running at me)
+	local holderBrain = state.bots[bomb.holder.Id]
+	local hunted
+	if holderBrain then
+		hunted = holderBrain.target == participant
+	else
+		local fromHolder = flat(position - holderRoot.Position)
+		hunted = fromHolder.Magnitude > 0.1 and flat(holderRoot.AssemblyLinearVelocity):Dot(fromHolder.Unit) > 6
+	end
+	-- how far is far enough: further as the ticking quickens, much further for the careful; the
+	-- brave hover closer, and less so when it's them being chased
+	local brave = 1 - mind.Caution
+	local want = (Bomber.PassReach + 8 + hurry * (Bomber.BlastRadius + 4)) * (0.55 + mind.Caution * 0.7)
+	if hunted then
+		want += 8 + brave * 4
+	end
+	if danger > want + 8 then
+		-- safe for now: roam, the brave toward the action, the careful away from it
+		if arrived(brain.goal) or brain.mode ~= "Roam" then
+			brain.mode = "Roam"
+			local around = brave > 0.4 and holderRoot.Position or position
+			go(roam(around, brave > 0.4 and want or 6, brave > 0.4 and want + 18 or 30, holderRoot.Position))
 		end
 		return
 	end
-	-- the floor nearby that's far enough from the holder, not on an edge, reachable without
-	-- crossing a hole or running past them, and (for the sly) with someone else in between
+	-- too close: kite. The floor nearby that's far enough from the holder, not on an edge, at least
+	-- a few studs from here (so it moves), reachable without crossing a hole or running past them,
+	-- sideways rather than backing into an edge, and (for the sly) with someone else in between
+	-- a kite holds its plan a moment (re-planning every decision made them jitter) unless it's
+	-- arrived or the holder is right on top of it
+	if brain.mode == "Kite" and not arrived(brain.goal) and os.clock() < (brain.planAt or 0) and danger > want * 0.5 then
+		return
+	end
+	brain.mode = "Kite"
+	brain.planAt = os.clock() + 0.7 + math.random() * 0.5
 	local best, bestScore = nil, -math.huge
+	local holderWay = flat(holderRoot.Position - position)
 	for _, cell in state.arena:SolidCells() do
 		local centre = cell.model:GetPivot().Position
-		local fromMe = flat(centre - position).Magnitude
-		if fromMe < 36 then
+		local toward = flat(centre - position)
+		local fromMe = toward.Magnitude
+		if fromMe < 36 and fromMe > 6 then
 			local fromHolder = flat(centre - holderRoot.Position).Magnitude
-			local score = math.min(fromHolder, want + 12) - fromMe * 0.3
+			local score = math.min(fromHolder, want + 12) - fromMe * 0.25 + math.random() * 4
 			if state.arena:IsEdge(cell) then
 				score -= 12 * mind.Caution
 			end
-			local toward = flat(centre - position)
-			local holderWay = flat(holderRoot.Position - position)
-			if toward.Magnitude > 0.1 and holderWay.Magnitude > 0.1 and toward.Unit:Dot(holderWay.Unit) > 0.4 then
-				score -= 30
+			if holderWay.Magnitude > 0.1 then
+				local dot = toward.Unit:Dot(holderWay.Unit)
+				if dot > 0.4 then
+					score -= 30 -- not past them
+				elseif math.abs(dot) < 0.5 then
+					score += 3 -- sideways: room to keep running
+				end
 			end
 			if mind.Hides then
 				-- someone else nearer the holder, between it and this spot: they'll be caught first
@@ -563,9 +650,7 @@ local function botFleeing(participant, brain, root: BasePart, humanoid: Humanoid
 			end
 		end
 	end
-	if best then
-		humanoid:MoveTo(best)
-	end
+	go(best or roam(position, 6, 24, holderRoot.Position))
 end
 
 -- Whether a bot uses its power-up now: the holder Turbos to catch someone; the rest Shield,

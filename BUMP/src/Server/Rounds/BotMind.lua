@@ -24,6 +24,16 @@
 	    BotMind.HoleDistance(arena, at, max)       how far to the nearest missing floor, and which way
 	    BotMind.PathClear(arena, from, dir, dist)  floor all along a straight line
 	    BotMind.Wobble(dir, mind)                  a direction off by its aim error
+	    BotMind.PickTarget(brain, mind, candidates, score, distanceTo)
+	                                               who to go after (below)
+
+	Targets (the user, 2026-11-14: bots "seem to run back after me as the closest target ... almost
+	randomise their targets", and "update their targets based on changing factors like distance to
+	other targets and aggro"): each game scores the candidates its own way (distance, cornered,
+	players, its style's leanings); PickTarget adds what every bot weighs the same way: a whim per
+	target that changes every few seconds (so bots, and one bot over time, pick differently), staying
+	with the current target unless another is clearly better as things change, and giving up for a
+	while on one it has chased without closing in.
 ]]
 
 local BotMind = {}
@@ -116,6 +126,65 @@ function BotMind.PathClear(arena, from: Vector3, direction: Vector3, distance: n
 		travelled += step
 	end
 	return arena:FloorAt(from + direction * distance)
+end
+
+local WHIM_MIN, WHIM_MAX = 2, 4.5 -- seconds a bot's whims last before they're dealt again
+local WHIM_SIZE = 1.5 -- how much a whim can add to a target's score (times 0.6 + the style's Random)
+local SWITCH_MARGIN = 0.5 -- another target has to beat the current one by this much
+local FED_UP_AFTER = 4 -- seconds chasing without getting 3 studs closer (plus up to 2 for skill)
+local FED_UP_FOR = 3 -- and then that target is left alone this long (plus up to 3)
+
+-- Who to go after. `score(candidate)` is the game's own score, nil for "not a candidate";
+-- `distanceTo(candidate)` how far they are (for giving up on a chase). Returns a candidate or nil.
+function BotMind.PickTarget(brain, mind, candidates, score, distanceTo)
+	local clock = os.clock()
+	brain.whims = brain.whims or {}
+	brain.fedUp = brain.fedUp or {}
+	if clock >= (brain.whimAt or 0) then
+		brain.whimAt = clock + WHIM_MIN + math.random() * (WHIM_MAX - WHIM_MIN)
+		table.clear(brain.whims)
+	end
+	-- a chase that isn't closing in: give up on them for a while
+	local current = brain.target
+	local currentDistance = current and distanceTo(current)
+	if currentDistance then
+		local chase = brain.chase
+		if not chase or chase.target ~= current then
+			brain.chase = { target = current, since = clock, best = currentDistance }
+		elseif currentDistance < chase.best - 3 then
+			chase.best, chase.since = currentDistance, clock
+		elseif clock - chase.since > FED_UP_AFTER + mind.Skill * 2 then
+			brain.fedUp[current] = clock + FED_UP_FOR + math.random() * 3
+			brain.chase = nil
+		end
+	end
+	local best, bestScore, currentScore = nil, -math.huge, nil
+	for _, candidate in candidates do
+		local base = (brain.fedUp[candidate] or 0) < clock and score(candidate)
+		if base then
+			local whim = brain.whims[candidate]
+			if not whim then
+				whim = math.random() * WHIM_SIZE
+				brain.whims[candidate] = whim
+			end
+			local total = base + whim * (0.6 + mind.Random)
+			if candidate == current then
+				currentScore = total
+			end
+			if total > bestScore then
+				best, bestScore = candidate, total
+			end
+		end
+	end
+	if currentScore and best ~= current and bestScore < currentScore + SWITCH_MARGIN then
+		return current, currentScore
+	end
+	if not best and next(brain.fedUp) then
+		-- fed up with everyone left: start afresh
+		table.clear(brain.fedUp)
+		return BotMind.PickTarget(brain, mind, candidates, score, distanceTo)
+	end
+	return best, bestScore
 end
 
 -- A flat direction turned by up to the mind's aim error.

@@ -453,6 +453,32 @@ what was wrong: bots "die stupidly", are "too passive / predictable" and have "n
   ticks and their caution, juke sideways with a hop when it closes in, step off crumbling floor at
   once, keep off edges, and the cowardly pick spots with someone else between them and the holder.
 - The log now says why someone fell in BUMP: "knocked off" (hit in the last 4 s) or "fell alone".
+- **Second pass** (2026-11-14). The user: "There are moments where they're all just standing still
+  for no reason", "when passing the bomb to an AI, they seem to run back after me as the closest
+  target ... almost randomise their targets", and "update their targets based on changing factors
+  like distance to other targets and aggro". Measured first: Bomber bots still 65% of the time
+  (up to 9 s at a go) and 11 of 15 passes going straight back; BUMP riders still 9% (3 to 5 s
+  parked).
+  - **The main cause was a bug:** `Hex.Key` named a tile from a point just left of a column "-0,r"
+    (Luau prints negative zero as "-0"), which matched no tile, so `FloorAt` said solid floor was
+    gone: fleeing bots "stepped off" to the nearest safe spot, their own tile, and stood. Fixed (0
+    is written "0"), with a spec case. It also gave BUMP's bots fake holes to recover from.
+  - **Targets** (`BotMind.PickTarget`, both games): the game's score (distance, cornered, players,
+    the style's leanings) plus a whim per target dealt again every 2 to 4.5 s (up to 1.5 x (0.6 +
+    the style's Random), enough to outweigh 30 to 60 studs), a switch only when another beats the
+    current target by 0.5 as people move, and giving up for 3 to 6 s on one chased 4 to 6 s
+    without getting 3 studs closer.
+  - **Bomber holders** don't go for whoever just passed it to them for 3.5 to 6 s
+    (`bomb.passBackAt`) unless they're the only one left, and favour the easy to catch (standing
+    about, coming their way) by skill. **Fleeing** bots always have a goal and pick the next on
+    arriving: roam the floor when far enough (the brave near the holder, the careful away), kite
+    to sideways floor 6+ studs away when close (held 0.7 to 1.2 s so they don't jitter), further
+    when the holder is after them.
+  - **BUMP**: riders with nobody worth hunting patrol a loop round the middle instead of parking;
+    on-foot bots pick their next spot on arriving; a recovering rider whose nearest safe spot is
+    under it heads inward.
+  - Measured after: Bomber still 3% (no stretch over 1.5 s), 2 of 15 passes back within 6 s, the
+    bomb round the field (players included); BUMP still 2%.
 - Measured in Play, one idle player and seven bots: BUMP games of 90, 50 and 90 s (the limit) and
   Bomber 82 and 83 s (were 8 to 27 s); over two BUMP games 12 knocked off and 2 fell alone; 4 balls
   stolen by bots' dives; no errors. **Not judged yet:** whether they feel fun and fair to the user
