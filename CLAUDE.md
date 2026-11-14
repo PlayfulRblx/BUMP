@@ -21,9 +21,10 @@ to try.
 | `Shared/Movement/Tuning.lua` | `Tuning.Of("Jump").Single` reads live. In Studio every number is an attribute on `ReplicatedStorage.BumpTuning`, editable in Properties (Server view) while playing |
 | `Shared/Movement/Remotes.lua` | `Bump:Act` (client: "Move", "Bump"), `Bump:You` ("Knock"), `Bump:Fx` ("Bump") |
 | `Client/Systems/Platformer.lua` | The controller: a move state machine on your own character. A planar LinearVelocity owns horizontal speed, an AlignOrientation owns facing, jumps write vertical speed; the stock jump and AutoRotate are off |
+| `Shared/Movement/Moves.lua` | Which moves are on the ground, locked, or can float-jump, and what each button would do from a move (the input chips' labels): pure functions of a view of the controller's state (`Platformer`'s `view()`), with a spec |
 | `Client/Systems/Animator.lua` | Plays a clip on every body (players and dummies) on every client: your own move from Platformer, others' from `BumpMove`. Pulls `Transform` on each joint (Motor6D or the newer AnimationConstraint) over Roblox's Animate. Move to clip table at its top |
 | `Shared/Movement/Clips.lua`, `AnimationData/` | Clips as data. `Core.lua` is generated from `animation/` (see `animation/README.md`); `Imported.lua` is Playful's Run, copied from The Scramble |
-| `Client/Systems/BumpFx.lua` | The placeholder pop where a bump lands |
+| `Client/Systems/BumpFx.lua` | The effects of moves (OnMove, from the Animator) and the wiring of the server's Fx events to `Client/Fx`: `FxKit` (emitters, bursts, glow parts, streaks, comic words, sounds, camera shake; re-exported by BumpFx for PowerUpFx and RoundIntro), `HitFx` (bumps, ball hits, ripples), `BombFx` (the carried bomb, the blast, passes), `KnockoutFx` (the KO blast), `ChargeFx` (the ball dash). Split out of one 1,044-line file, 2026-11-14 |
 | `Server/Systems/BumpServer.lua` | Tags bodies (`BumpBody`), copies moves onto characters, checks claimed bumps and throws the target (a player's own client applies its knock), spawns the dummies |
 | `Server/Systems/Yard.lua` | The practice yard (was the test yard): height ledges, long-jump lane, wall-jump chimney, tower, dummy ring, built round `World.YardOrigin` (0, 0, 1600) |
 
@@ -257,7 +258,7 @@ BUMP and Bomber Bloxians exist: the playlist (`RoundInfo.Playlist`) alternates t
 | `Shared/Rounds/RoundInfo.lua` | Where the round's state lives (attributes on `ReplicatedStorage.BumpRound`), each minigame's intro card text, the playlist |
 | `Server/Systems/RoundServer.lua` | (Each game: Changeover with the arena arriving, `Setup` then wait, then the 7 s cinematic Intro (see "Round intro") with `Place`; after Results, back to the plaza and the arena leaving.) Lobby (the plaza; needs a player; `Rounds.Lobby`, Studio `StudioLobby`), seats (players up to 4, bots fill), each game's Intro (frozen, `Frozen` attribute) / Play / Results, then Standings, then everyone back to the plaza (`World.LobbySpot`). Placing: knocked out takes the place of how many were left; survivors at time-up share 1st. Gold `Rounds.Gold1..4` through the engine's `MoneyHandlerServer.AwardCurrencyPromise` (quiet) and a `GoldEarned` event. Prints `[Round] <name> out (<why>) at <pos>` |
 | `Server/Rounds/Bots.lua` | Bots: R15 from a description, painted per seat (`Bots.Paint`: a description's colours don't reach the body), tagged `BumpBody` and `BumpBot` |
-| `Server/Rounds/BumpGame.lua` | The ball game: the hex arena in the lobby's pit (`World.ArenaOrigin`), 7 rings (169 tiles; the user wanted it "much larger" than the first 4), neon edges cyan to pink, balls, mounting, hits, knock-offs, shrink, falls, the bots' brains. Arena attributes `Hits`, `KnockedOff`, `Runover` count for tests |
+| `Server/Rounds/BumpGame.lua` | The ball game: the hex arena in the lobby's pit (`World.ArenaOrigin`), 7 rings (169 tiles; the user wanted it "much larger" than the first 4), neon edges cyan to pink, balls, mounting, hits, knock-offs, shrink, falls. The bots' brains are `Server/Rounds/BumpBots.lua` (on foot, riding), handed what they need of the running game through `BumpBots.Bind`. Arena attributes `Hits`, `KnockedOff`, `Runover` count for tests |
 | `Server/Rounds/HexArena.lua` | The hex platform both games stand on: cells (`Solid` / `Warning` / `Gone`), `FloorAt`, `IsEdge`, `DropCell`, `Crater`, `SafeSpot`, a glass stand (`StandSpot`) |
 | `Server/Rounds/BomberGame.lua` | Bomber Bloxians: the arena in the lobby's pit, 5 rings (91 cells), neon edges yellow to red, the bomb, passing, blasts, the bots. Arena attributes `Passes`, `Blasts`. Prints `[Bomber] ...` |
 | `Shared/Minigames/Hex.lua`, `BallPhysics.lua` | Hex grid maths and tiles; how a ball rolls (shared by players' clients and the server's bots) |
@@ -682,7 +683,12 @@ The master scripts build their load orders from that list.
   noise in a local file.
 - Terrain `Decoration` and `GrassLength` can't be set by scripts; they're in the project files
   (`Workspace.Terrain`), as is `Lighting.Technology = Future`.
-- Specs (`*.spec.lua`) use the Nevermore Jest loader like the other games and aren't built.
+- Specs (`*.spec.lua`) use the Nevermore Jest loader like the other games and aren't built. BUMP's
+  (2026-11-14): `Hex`, `BallPhysics`, `Moves`, `PowerUpInfo`, 22 cases. Nothing here runs Jest, so
+  they were checked by pasting their bodies into `execute_luau` in Edit with a small
+  describe/it/expect stand-in, against the built modules: all 22 passed.
+- History is on branch `bump-game` (2026-11-14): the work in seven commits by feature, then the
+  tidy (the dead triple-jump chain removed, BumpBots, the Fx split, Moves, the specs).
 - The engine's demo switches (`Constants.DEMO`) default on. `MailDemo` posted a "Goodbye!" letter
   with a free item (6007) to everyone leaving, and any mail brings up "You have new mail!" on join
   (the user asked why, 2026-11-14: every Studio Play stop had added one, 50 by then, in the real
