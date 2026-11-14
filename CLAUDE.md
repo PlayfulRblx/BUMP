@@ -257,7 +257,7 @@ BUMP and Bomber Bloxians exist: the playlist (`RoundInfo.Playlist`) alternates t
 | --- | --- |
 | `Shared/Rounds/RoundInfo.lua` | Where the round's state lives (attributes on `ReplicatedStorage.BumpRound`), each minigame's intro card text, the playlist |
 | `Server/Systems/RoundServer.lua` | (Each game: Changeover with the arena arriving, `Setup` then wait, then the 7 s cinematic Intro (see "Round intro") with `Place`; after Results, back to the plaza and the arena leaving.) Lobby (the plaza; needs a player; `Rounds.Lobby`, Studio `StudioLobby`), seats (players up to 4, bots fill), each game's Intro (frozen, `Frozen` attribute) / Play / Results, then Standings, then everyone back to the plaza (`World.LobbySpot`). Placing: knocked out takes the place of how many were left; survivors at time-up share 1st. Gold `Rounds.Gold1..4` through the engine's `MoneyHandlerServer.AwardCurrencyPromise` (quiet) and a `GoldEarned` event. Prints `[Round] <name> out (<why>) at <pos>` |
-| `Server/Rounds/Bots.lua` | Bots: R15 from a description, painted per seat (`Bots.Paint`: a description's colours don't reach the body), tagged `BumpBody` and `BumpBot` |
+| `Server/Rounds/Bots.lua` | Bots: R15 from a friend's avatar (`Server/Rounds/Friends.lua`) or a plain body painted per seat (`Bots.Paint`: a description's colours don't reach the body), named with "[AI]", tagged `BumpBody` and `BumpBot` |
 | `Server/Rounds/BumpGame.lua` | The ball game: the hex arena in the lobby's pit (`World.ArenaOrigin`), 7 rings (169 tiles; the user wanted it "much larger" than the first 4), neon edges cyan to pink, balls, mounting, hits, knock-offs, shrink, falls. The bots' brains are `Server/Rounds/BumpBots.lua` (on foot, riding), handed what they need of the running game through `BumpBots.Bind`. Arena attributes `Hits`, `KnockedOff`, `Runover` count for tests |
 | `Server/Rounds/HexArena.lua` | The hex platform both games stand on: cells (`Solid` / `Warning` / `Gone`), `FloorAt`, `IsEdge`, `DropCell`, `Crater`, `SafeSpot`, a glass stand (`StandSpot`) |
 | `Server/Rounds/BomberGame.lua` | Bomber Bloxians: the arena in the lobby's pit, 5 rings (91 cells), neon edges yellow to red, the bomb, passing, blasts, the bots. Arena attributes `Passes`, `Blasts`. Prints `[Bomber] ...` |
@@ -479,6 +479,24 @@ what was wrong: bots "die stupidly", are "too passive / predictable" and have "n
     under it heads inward.
   - Measured after: Bomber still 3% (no stretch over 1.5 s), 2 of 15 passes back within 6 s, the
     bomb round the field (players included); BUMP still 2%.
+- **Bots as the players' friends** (2026-11-14). The user: "make the NPCs resemble players from
+  the playing players' friends lists and add an "[AI]" tag next to their names".
+  `Server/Rounds/Friends.lua` fetches each player's friends list on joining (`GetFriendsAsync`, up
+  to 4 pages of 50, `[Friends] X: n friends`); `startSession` deals the empty seats to friends of
+  the people playing (`Friends.Pick`: shuffled, nobody in the server, nobody twice), the rest to
+  `Bots.Names`. Every bot's name ends in `RoundInfo.AITag` ("[AI]"), so the tag shows wherever a
+  name does (overhead via Humanoid.DisplayName, the HUD list, results, standings, intro pops, the
+  knockout card and feed, Bomber's note, the lobby boards, the log). A friend's bot has `FaceId`
+  (their UserId): `Friends.Prefetch` fetches their avatar (`GetHumanoidDescriptionFromUserId`,
+  cached) at the session's start, `Bots.Spawn(..., look)` builds the body from it and paints the
+  body colours from it (a description's colours don't reach a built body here); seat colour
+  stays on the ball, spotlight, name and ring. `FaceId` rides in the Players / Results /
+  Standings entries for portraits (`UiSeat` shows `UserId or FaceId`) and as `ByUserId` on the
+  knockout card; it isn't `UserId`, which marks real players. Any failure falls back to the plain
+  seat-coloured bot. Measured in Play: 200 friends, seven bots dealt ("Baumz [AI]", "Phoenix [AI]"
+  ...), bodies with 2 to 8 accessories, layered clothing and their own skin; the list with names
+  and headshots (`design/lobby/L_friend_bots.jpg`). **Not seen:** the bodies on screen in a
+  capture, long display names in the list, a friend joining mid-session.
 - Measured in Play, one idle player and seven bots: BUMP games of 90, 50 and 90 s (the limit) and
   Bomber 82 and 83 s (were 8 to 27 s); over two BUMP games 12 knocked off and 2 fell alone; 4 balls
   stolen by bots' dives; no errors. **Not judged yet:** whether they feel fun and fair to the user

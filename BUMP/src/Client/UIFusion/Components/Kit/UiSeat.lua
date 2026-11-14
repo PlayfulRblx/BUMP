@@ -69,7 +69,7 @@ return function(scope, props)
 		ZIndex = props.ZIndex,
 		Children = {
 			scope:UiPortrait({
-				UserId = data.UserId,
+				UserId = data.UserId or data.FaceId, -- a bot dressed as a friend shows their face
 				Label = data.Name,
 				Out = out,
 				You = data.You,

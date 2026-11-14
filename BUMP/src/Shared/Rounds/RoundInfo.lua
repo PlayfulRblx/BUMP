@@ -71,6 +71,8 @@ RoundInfo.SpeedAttr = "BumpSpeedScale" -- the platformer multiplies running spee
 -- Blown up by the bomb: while true every client flashes the body red, pops it and keeps it
 -- hidden (Client/Systems/PopFx); the server clears it once the body is off the arena.
 RoundInfo.PopAttr = "BumpPopped"
+-- After every bot's name, wherever it shows (overhead, the HUD, the intro, the knockout card).
+RoundInfo.AITag = "[AI]"
 -- A player just knocked out of a game (the user, 2026-11-14: "show ELIMINATED BY X ... and show a
 -- camera shot of the character"): their body is left where it went for this many seconds while
 -- their camera watches it go (Client/Systems/KnockoutCam), then the game moves it to the stand;

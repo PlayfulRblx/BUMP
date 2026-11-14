@@ -26,6 +26,7 @@ local RoundInfo = require("@Shared/Rounds/RoundInfo")
 local Tuning = require("@Shared/Movement/Tuning")
 local Ragdoll = require("@Shared/Ragdoll")
 local Bots = require("@GameServer/Rounds/Bots")
+local Friends = require("@GameServer/Rounds/Friends")
 local BotMind = require("@GameServer/Rounds/BotMind")
 local World = require("@Shared/World")
 local Spotlight = require("@GameServer/Rounds/Spotlight")
@@ -92,6 +93,7 @@ local function publishPlayers()
 			Id = participant.Id,
 			Name = participant.Name,
 			UserId = participant.Player and participant.Player.UserId or nil,
+			FaceId = participant.FaceId, -- a bot dressed as a friend: their headshot on its portrait
 			Seat = participant.Seat,
 			Gold = session.Gold[participant.Id] or 0,
 			Out = participant.Out == true,
@@ -163,14 +165,34 @@ local function startSession()
 		seat += 1
 		table.insert(session.Seats, { Id = tostring(player.UserId), Name = player.DisplayName, Player = player, Seat = seat })
 	end
+	-- the empty seats go to the players' friends where there are enough (their name and avatar:
+	-- Server/Rounds/Friends), the rest to the bots' own names; every bot's name carries the tag
+	-- (the user, 2026-11-14: "add an "[AI]" tag next to their names")
+	local players = {}
+	for _, participant in session.Seats do
+		table.insert(players, participant.Player)
+	end
+	local friends = Friends.Pick(players, Rounds.Seats - seat)
+	local faces = {}
 	local names = table.clone(Bots.Names)
 	local botNumber = 0
 	while seat < Rounds.Seats do
 		seat += 1
 		botNumber += 1
-		local name = table.remove(names, math.random(1, #names))
-		table.insert(session.Seats, { Id = "bot" .. botNumber, Name = name, Bot = true, Seat = seat })
+		local friend = friends[botNumber]
+		local name = friend and friend.Name or table.remove(names, math.random(1, #names))
+		table.insert(session.Seats, {
+			Id = "bot" .. botNumber,
+			Name = name .. " " .. RoundInfo.AITag,
+			Bot = true,
+			Seat = seat,
+			FaceId = friend and friend.UserId or nil, -- whose avatar it wears
+		})
+		if friend then
+			table.insert(faces, friend.UserId)
+		end
 	end
+	Friends.Prefetch(faces)
 	for _, participant in session.Seats do
 		session.Gold[participant.Id] = 0
 		session.Wins[participant.Id] = 0
@@ -230,7 +252,8 @@ local function playGame(index: number, gameId: string)
 		if participant.Model then
 			participant.Model:PivotTo(cframe)
 		else
-			participant.Model = Bots.Spawn(participant.Id, participant.Name, participant.Seat, cframe)
+			local look = participant.FaceId and Friends.Look(participant.FaceId) or nil
+			participant.Model = Bots.Spawn(participant.Id, participant.Name, participant.Seat, cframe, look)
 		end
 		return participant.Model
 	end
@@ -267,7 +290,7 @@ local function playGame(index: number, gameId: string)
 		local news = {
 			Id = participant.Id, Name = participant.Name, Seat = participant.Seat, Reason = reason,
 			By = by and by.Name or nil, BySeat = by and by.Seat or nil, ById = by and by.Id or nil,
-			ByUserId = by and by.Player and by.Player.UserId or nil, How = how,
+			ByUserId = by and (by.Player and by.Player.UserId or by.FaceId) or nil, How = how,
 		}
 		if participant.Player then
 			-- their body is left falling for their knockout camera, then the game moves it
@@ -354,6 +377,7 @@ local function playGame(index: number, gameId: string)
 			table.insert(results, {
 				Name = participant.Name,
 				UserId = participant.Player and participant.Player.UserId or nil,
+				FaceId = participant.FaceId,
 				Seat = participant.Seat,
 				Place = participant.Place,
 				Gold = gold,
@@ -405,6 +429,7 @@ local function standings()
 		table.insert(list, {
 			Name = participant.Name,
 			UserId = participant.Player and participant.Player.UserId or nil,
+			FaceId = participant.FaceId,
 			Seat = participant.Seat,
 			Gold = session.Gold[participant.Id] or 0,
 			Wins = session.Wins[participant.Id] or 0,
@@ -472,6 +497,7 @@ end
 
 function RoundServer.start()
 	Ragdoll.Watch(Remotes.BodyTag)
+	Friends.Watch()
 	PowerUps.Init()
 	for _, minigame in GAMES do
 		if minigame.Init then
