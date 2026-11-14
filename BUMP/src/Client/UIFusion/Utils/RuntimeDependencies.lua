@@ -7,7 +7,9 @@
 -- Add a client system here, then read it from UI with RuntimeDependencies.Get("Name")
 -- (or GetOptional). The engine root calls Configure before mounting the game root.
 
-local DEPENDENCY_PATHS = {}
+local DEPENDENCY_PATHS = {
+	RoundClient = "@GameClient/Systems/RoundClient",
+}
 
 local persistentImport = nil
 local dependencyCache = {}

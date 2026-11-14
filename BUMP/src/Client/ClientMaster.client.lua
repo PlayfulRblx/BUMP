@@ -23,6 +23,8 @@ local loadOrder = table.clone(require("@Shared/SystemList").Client)
 -- Systems loaded before loadOrder. The engine UI host goes here so the game root mounts early.
 local preloadList = {
 	"StarterPlayer/StarterPlayerScripts/BACKEND/@Engine/EngineSystems/UIFusion",
+	-- what the HUD reads; before the game systems that write to it (BallRider)
+	"@GameClient/Systems/RoundClient",
 }
 
 -- Game systems that can wait until the first frame is visible.
