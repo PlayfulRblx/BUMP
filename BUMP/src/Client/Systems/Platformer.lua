@@ -11,8 +11,9 @@
 	- jumps are written straight into your vertical speed, and the stock jump is switched off.
 
 	Moves (numbers in Shared/Movement/MoveConfig):
-	    Jump                  single; again just after landing for a double, then a triple flip.
-	                          A press just before landing, or just after running off an edge, counts
+	    Jump                  a single. A press just before landing, or just after running off an
+	                          edge, counts
+	    Jump in the air       the float jump, once a flight: running on air, rising while held
 	    Crouch + Jump         standing: backflip, arcing well back. Running: long jump
 	    Crouch in the air     ground pound; jump just after it lands for a high jump
 	    Attack in the air     dive (also out of a ground pound); land in a belly slide, jump to hop out
@@ -44,6 +45,7 @@ local Ragdoll = require("@Shared/Ragdoll")
 local Remotes = require("@Shared/Movement/Remotes")
 local RoundInfo = require("@Shared/Rounds/RoundInfo")
 local PowerUpInfo = require("@Shared/PowerUps/PowerUpInfo")
+local Moves = require("@Shared/Movement/Moves")
 local Tuning = require("@Shared/Movement/Tuning")
 
 local Run = Tuning.Of("Run")
@@ -65,13 +67,8 @@ local Platformer = {}
 
 local player = Players.LocalPlayer
 
--- Moves that are on the ground. Everything else is in the air.
-local GROUND_MOVES = {
-	Run = true, Crouch = true, PoundLand = true, Slide = true, Roll = true, LandRoll = true, Bump = true, Bonk = true,
-	Hero = true,
-}
--- Moves you can't act out of until they end.
-local LOCKED = { Knocked = true, Bonk = true, Shoved = true, Hero = true }
+local GROUND_MOVES = Moves.Ground -- moves on the ground; everything else is in the air
+local LOCKED = Moves.Locked -- moves you can't act out of until they end
 
 local LEAVE_GROUND_GRACE = 0.12 -- after a jump, ignore the floor this long
 
@@ -421,8 +418,7 @@ local function startGroundJump()
 end
 
 -- Tries the jump that is waiting in the buffer. True if one happened.
--- Moves you can float-jump out of.
-local AIR_JUMP_FROM = { Jump = true, Fall = true, Backflip = true, LongJump = true, WallJump = true, Rollout = true, PoundJump = true }
+local AIR_JUMP_FROM = Moves.AirJumpFrom -- moves you can float-jump out of
 
 -- The air jump: running on air. A small kick up, keeping your speed; while jump is held the
 -- legs keep you rising slowly (the vertical part is in the step, under move == "AirJump").
@@ -986,89 +982,30 @@ local BUTTONS = {
 
 local hints = {} -- [id] = { handle, label, enabled }
 
--- What each button would do right now: (label, enabled).
-local function jumpHint(): (string, boolean)
-	if not alive() or LOCKED[move] then
-		return "Jump", false
-	end
-	if move == "WallCling" or move == "WallSlide" then
-		return "Wall Jump", true
-	end
-	if move == "PoundLand" then
-		return "High Jump", since() <= Pound.JumpWindow
-	end
-	if move == "Slide" then
-		return "Hop Out", true
-	end
-	if move == "Roll" or move == "LandRoll" then
-		return "Long Jump", true
-	end
-	if move == "Run" or move == "Crouch" then
-		local speed = flat(body.root.AssemblyLinearVelocity).Magnitude
-		if crouchHeld then
-			return speed >= LongJump.MinSpeed and "Long Jump" or "Backflip", true
-		end
-		return "Jump", true
-	end
-	if AIR_JUMP_FROM[move] then
-		return "Float Jump", not airJumped
-	end
-	return "Jump", false
-end
-
-local function crouchHint(): (string, boolean)
-	if not alive() or LOCKED[move] then
-		return "Crouch", false
-	end
-	if move == "WallCling" or move == "WallSlide" then
-		return "Let Go", true
-	end
-	if GROUND_MOVES[move] then
-		return "Crouch", move == "Run" or move == "Crouch"
-	end
-	if move == "PoundSpin" or move == "PoundFall" or move == "Dive" then
-		return "Ground Pound", false
-	end
-	return "Ground Pound", true
-end
-
-local function attackHint(): (string, boolean)
-	if not alive() or LOCKED[move] then
-		return "Bump", false
-	end
-	if GROUND_MOVES[move] then
-		local moving = flat(body.root.AssemblyLinearVelocity).Magnitude > 4
-		if move == "Run" or move == "Crouch" then
-			if crouchHeld and moving then
-				return "Roll", true
-			end
-			return "Bump", now() >= bumpReadyAt
-		end
-		return "Bump", false
-	end
-	if move == "WallCling" or move == "WallSlide" then
-		return "Dive", false
-	end
-	return "Dive", not airDived
-end
-
-local HINTS = { BumpJump = jumpHint, BumpCrouch = crouchHint, BumpAttack = attackHint }
-
--- A plain jump needs no chip (the user, 2026-11-13: "we don't need a hint for Jump"); the jump
--- chip shows only when Space does something special: Float Jump, Backflip, Wall Jump...
-local function shown(id: string, label: string): boolean
-	return not (id == "BumpJump" and label == "Jump")
+-- What the buttons' chips are worked out from (Moves.JumpHint and the rest).
+local function view()
+	return {
+		Alive = alive(),
+		Move = move,
+		SinceMove = since(),
+		Speed = body and flat(body.root.AssemblyLinearVelocity).Magnitude or 0,
+		CrouchHeld = crouchHeld,
+		AirJumped = airJumped,
+		AirDived = airDived,
+		BumpReady = now() >= bumpReadyAt,
+	}
 end
 
 local function refreshHints()
+	local current = view()
 	for id, entry in hints do
 		local label, enabled
 		if external and external.Hint then
 			label, enabled = external.Hint(id)
 		else
-			label, enabled = HINTS[id]()
+			label, enabled = Moves.Hints[id](current)
 		end
-		local visible = shown(id, label)
+		local visible = Moves.HintShown(id, label)
 		if label ~= entry.label or enabled ~= entry.enabled or visible ~= entry.visible then
 			entry.label, entry.enabled, entry.visible = label, enabled, visible
 			entry.handle:Update({ Label = label, Enabled = enabled, Visible = visible })
@@ -1078,7 +1015,7 @@ end
 
 local function bindButtons()
 	for _, button in BUTTONS do
-		local label = HINTS[button.Id]()
+		local label = Moves.Hints[button.Id](view())
 		InputHandler:BindInput(button.Id, button.Keys, BINDING_PRIORITY, function(state)
 			local begin = state == Enum.UserInputState.Begin
 			local finish = state == Enum.UserInputState.End or state == Enum.UserInputState.Cancel
@@ -1100,10 +1037,10 @@ local function bindButtons()
 		-- the same Id merges with the binding's chip, and lets the label change
 		local handle = InputHandler:RegisterInputHint({
 			Id = button.Id, InputName = button.Id, Label = label, Group = "Moves", Order = button.Order,
-			Visible = shown(button.Id, label),
+			Visible = Moves.HintShown(button.Id, label),
 		})
 		if handle then
-			hints[button.Id] = { handle = handle, label = label, enabled = true, visible = shown(button.Id, label) }
+			hints[button.Id] = { handle = handle, label = label, enabled = true, visible = Moves.HintShown(button.Id, label) }
 		end
 	end
 
